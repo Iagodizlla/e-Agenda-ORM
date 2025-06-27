@@ -21,7 +21,7 @@ namespace eAgenda.WebApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(string status)
+        public IActionResult Index(string? status)
         {
             List<Tarefa> registros;
 
