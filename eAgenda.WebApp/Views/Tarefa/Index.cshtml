@@ -1,4 +1,5 @@
-﻿@using static eAgenda.WebApp.Models.FormularioTarefaViewModel
+﻿@model eAgenda.WebApp.Models.FormularioTarefaViewModel.VisualizarTarefaViewModel
+@using static eAgenda.WebApp.Models.FormularioTarefaViewModel
 @using System.Linq
 
 @{
@@ -12,7 +13,7 @@
         Cadastrar Novo/a
     </a>
     <div class="ms-lg-auto d-grid d-lg-flex flex-wrap gap-2">
-        <a class="btn btn-outline-primary px-3 btn-filtro" asp-action="Index">
+        <a class="btn btn-outline-primary px-3 btn-filtro" asp-action="Index" asp-route-status="Todas">
             <i class="bi bi-list"></i>
             Todas as tarefas
         </a>
@@ -36,6 +37,9 @@
         var prioridades = new[] { "Baixa", "Média", "Alta" };
     }
 
+    @if (Model?.TarefasAgrupadasPorPrioridade != null)
+    {
+        
     @foreach (var prioridade in prioridades)
     {
         List<DetalhesTarefaViewModel> tarefasPorPrioridade;
@@ -86,6 +90,12 @@
                 </div>
             </div>
         }
+    }
+
+    }
+    else
+    {
+        <p>Nenhuma tarefa encontrada.</p>
     }
 </div>
 
