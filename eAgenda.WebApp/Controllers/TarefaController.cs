@@ -25,6 +25,14 @@ namespace eAgenda.WebApp.Controllers
         {
             List<Tarefa> registros;
 
+            List<Tarefa> tarefas = repositorioTarefa.SelecionarTarefas();
+
+            foreach (var tarefa in tarefas)
+            {
+                repositorioTarefa.AtualizarPercentual(tarefa.Id);
+                repositorioTarefa.AtualizarStatus(tarefa.Id);
+            }
+
             switch (status)
             {
                 case "Pendente": registros = repositorioTarefa.SelecionarTarefasPendentes(); break;
