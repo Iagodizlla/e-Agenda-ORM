@@ -2,7 +2,7 @@
 using eAgenda.Dominio.ModuloContato;
 using eAgenda.Infraestrutura.Compartilhado;
 using eAgenda.Infraestrutura.ModuloCompromisso;
-using eAgenda.Infraestrutura.ModuloContato;
+using eAgenda.Infraestrutura.SqlServer;
 using eAgenda.WebApp.Extensions;
 using eAgenda.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +20,7 @@ namespace eAgenda.WebApp.Controllers
         public ContatoController()
         {
             contextoDados = new ContextoDeDados(true);
-            repositorioContato = new RepositorioContatoEmArquivo(contextoDados);
+            repositorioContato = new RepositorioContatoEmSql();
             repoisitorioCompromisso = new RepositorioCompromissoEmArquivo(contextoDados);
         }
 

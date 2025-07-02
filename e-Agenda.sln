@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eAgenda.Dominio", "eAgenda.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eAgenda.Infraestrutura", "eAgenda.Infraestrutura\eAgenda.Infraestrutura.csproj", "{B99F87C1-A3D8-4EDE-81C5-F57A481496AA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eAgenda.Infraestrutura.SqlServer", "eAgenda.Infraestrutura.SqlServer\eAgenda.Infraestrutura.SqlServer.csproj", "{59D72DD9-3281-451F-A514-AA825F02779F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{B99F87C1-A3D8-4EDE-81C5-F57A481496AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B99F87C1-A3D8-4EDE-81C5-F57A481496AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B99F87C1-A3D8-4EDE-81C5-F57A481496AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59D72DD9-3281-451F-A514-AA825F02779F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59D72DD9-3281-451F-A514-AA825F02779F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59D72DD9-3281-451F-A514-AA825F02779F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59D72DD9-3281-451F-A514-AA825F02779F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -41,6 +47,7 @@ Global
 		{954F53F7-E647-4BDA-8051-4ADBA51CF33C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{BFB25420-ADFA-492B-AEC9-FED554F6136C} = {9C7C1369-0EA3-4EC3-B358-BE0A48C3BC8B}
 		{B99F87C1-A3D8-4EDE-81C5-F57A481496AA} = {8B09D854-D67C-43AA-87F1-325910EBC934}
+		{59D72DD9-3281-451F-A514-AA825F02779F} = {8B09D854-D67C-43AA-87F1-325910EBC934}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AD97793C-FD75-4729-9D93-6517B11E1011}
