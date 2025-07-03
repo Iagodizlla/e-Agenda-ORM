@@ -17,13 +17,13 @@ namespace eAgenda.Dominio.ModuloCompromisso
         public TimeSpan HoraInicio { get; set; }
         public TimeSpan HoraTermino { get; set; }
         public TipoCompromissoEnum TipoCompromisso { get; set; } 
-        public string Local { get; set; }
-        public string Link { get; set; }
-        public Contato Contato { get; set; }
+        public string? Local { get; set; }
+        public string? Link { get; set; }
+        public Contato? Contato { get; set; }
 
         public Compromisso() { }
 
-        public Compromisso(string assunto, DateTime dataOcorrencia, TimeSpan horaInicio, TimeSpan horaTermino, TipoCompromissoEnum tipoCompromisso, string local = null, string link = null, Contato contato = null)
+        public Compromisso(string assunto, DateTime dataOcorrencia, TimeSpan horaInicio, TimeSpan horaTermino, TipoCompromissoEnum tipoCompromisso, string local = null, string link = null, Contato? contato = null)
         {
             Id = Guid.NewGuid();
             Assunto = assunto;

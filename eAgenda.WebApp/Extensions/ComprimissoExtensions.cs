@@ -2,29 +2,41 @@
 using eAgenda.Dominio.ModuloContato;
 using eAgenda.WebApp.Models;
 
-namespace eAgenda.WebApp.Extensions
-{
-    public static class ComprimissoExtensions
-    {
-        private static readonly IRepositorioContato repositorioContato;
+namespace eAgenda.WebApp.Extensions;
 
-        public static Compromisso ParaEntidade(this FormularioCompromissoViewModel formularioVM)
+public static class CompromissoExtensions
+{
+    public static Compromisso ParaEntidade(
+        this FormularioCompromissoViewModel formularioVM,
+        List<Contato> contatos
+    )
+    {
+        Contato? contatoSelecionado = null;
+
+        foreach (var c in contatos)
         {
-            return new Compromisso(
-                formularioVM.Assunto,
-                formularioVM.DataOcorrencia,
-                formularioVM.HoraInicio,
-                formularioVM.HoraTermino,
-                formularioVM.TipoCompromisso,
-                formularioVM.Link,
-                formularioVM.Local,
-                formularioVM.Contato
-            );
+            if (c.Id.Equals(formularioVM.ContatoId))
+            {
+                contatoSelecionado = c;
+                break;
+            }
         }
 
-        public static DetalhesCompromissoViewModel ParaDetalhesVM(this Compromisso compromisso)
-        {
-            return new DetalhesCompromissoViewModel(
+        return new Compromisso(
+            formularioVM.Assunto,
+            formularioVM.Data,
+            formularioVM.HoraInicio,
+            formularioVM.HoraTermino,
+            formularioVM.Tipo,
+            formularioVM.Local,
+            formularioVM.Link,
+            contatoSelecionado
+        );
+    }
+
+    public static DetalhesCompromissoViewModel ParaDetalhesVM(this Compromisso compromisso)
+    {
+        return new DetalhesCompromissoViewModel(
                 compromisso.Id,
                 compromisso.Assunto,
                 compromisso.DataOcorrencia,
@@ -33,8 +45,7 @@ namespace eAgenda.WebApp.Extensions
                 compromisso.TipoCompromisso,
                 compromisso.Local,
                 compromisso.Link,
-                compromisso.Contato
-            );
-        }
+                compromisso.Contato?.Nome
+        );
     }
 }

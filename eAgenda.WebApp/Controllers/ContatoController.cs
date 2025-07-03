@@ -1,8 +1,7 @@
 ﻿using eAgenda.Dominio.ModuloCompromisso;
 using eAgenda.Dominio.ModuloContato;
-using eAgenda.Infraestrutura.Compartilhado;
-using eAgenda.Infraestrutura.ModuloCompromisso;
-using eAgenda.Infraestrutura.SqlServer;
+using eAgenda.Infraestrutura.SqlServer.ModuloCompromisso;
+using eAgenda.Infraestrutura.SqlServer.ModuloContato;
 using eAgenda.WebApp.Extensions;
 using eAgenda.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -13,15 +12,13 @@ namespace eAgenda.WebApp.Controllers
     [Route("contatos")]
     public class ContatoController : Controller
     {
-        private readonly ContextoDeDados contextoDados;
         private readonly IRepositorioContato repositorioContato;
         private readonly IRepositorioCompromisso repoisitorioCompromisso;
 
         public ContatoController()
         {
-            contextoDados = new ContextoDeDados(true);
             repositorioContato = new RepositorioContatoEmSql();
-            repoisitorioCompromisso = new RepositorioCompromissoEmArquivo(contextoDados);
+            repoisitorioCompromisso = new RepositorioCompromissoEmSql();
         }
 
         [HttpGet]

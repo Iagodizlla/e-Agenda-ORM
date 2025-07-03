@@ -1,7 +1,7 @@
 ﻿using eAgenda.Dominio.ModuloContato;
 using Microsoft.Data.SqlClient;
 
-namespace eAgenda.Infraestrutura.SqlServer;
+namespace eAgenda.Infraestrutura.SqlServer.ModuloContato;
 
 public class RepositorioContatoEmSql : IRepositorioContato
 {
@@ -183,7 +183,7 @@ public class RepositorioContatoEmSql : IRepositorioContato
         comando.Parameters.AddWithValue("NOME", contato.Nome);
         comando.Parameters.AddWithValue("EMAIL", contato.Email);
         comando.Parameters.AddWithValue("TELEFONE", contato.Telefone);
-        comando.Parameters.AddWithValue("EMPRESA", contato.Empresa);
-        comando.Parameters.AddWithValue("CARGO", contato.Cargo);
+        comando.Parameters.AddWithValue("EMPRESA", contato.Empresa ?? (object)DBNull.Value);
+        comando.Parameters.AddWithValue("CARGO", contato.Cargo ?? (object)DBNull.Value);
     }
 }

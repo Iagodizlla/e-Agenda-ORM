@@ -1,168 +1,153 @@
 ﻿using eAgenda.Dominio.ModuloCompromisso;
 using eAgenda.Dominio.ModuloContato;
 using eAgenda.WebApp.Extensions;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
-namespace eAgenda.WebApp.Models
+namespace eAgenda.WebApp.Models;
+
+public class FormularioCompromissoViewModel
 {
-    public abstract class FormularioCompromissoViewModel
+    [Required(ErrorMessage = "O campo \"Assunto\" é obrigatório.")]
+    [MinLength(2, ErrorMessage = "O campo \"Assunto\" precisa conter ao menos 2 caracteres.")]
+    [MaxLength(100, ErrorMessage = "O campo \"Assunto\" precisa conter no máximo 100 caracteres.")]
+    public string Assunto { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "O campo \"Data\" é obrigatório.")]
+    public DateTime Data { get; set; } = DateTime.Now;
+
+    [Required(ErrorMessage = "O campo \"Hora de Início\" é obrigatório.")]
+    public TimeSpan HoraInicio { get; set; }
+
+    [Required(ErrorMessage = "O campo \"Hora de Término\" é obrigatório.")]
+    public TimeSpan HoraTermino { get; set; }
+
+    [Required(ErrorMessage = "O campo \"Tipo\" é obrigatório.")]
+    public TipoCompromissoEnum Tipo { get; set; }
+
+    public string? Local { get; set; }
+    public string? Link { get; set; }
+
+    public Guid? ContatoId { get; set; }
+    public List<SelectListItem>? ContatosDisponiveis { get; set; }
+}
+
+public class CadastrarCompromissoViewModel : FormularioCompromissoViewModel
+{
+    public CadastrarCompromissoViewModel()
     {
-        [Required(ErrorMessage = "O campo \"Assunto\" é obrigatório.")]
-        [StringLength(100, MinimumLength = 2, ErrorMessage = "O campo \"Assunto\" precisa conter entre 2 e 100 caracteres.")]
-        public string Assunto { get; set; }
-
-        [Required(ErrorMessage = "O campo \"Data de Ocorrência\" é obrigatório.")]
-        public DateTime DataOcorrencia { get; set; }
-
-        [Required(ErrorMessage = "O campo \"Hora de Início\" é obrigatório.")]
-        public TimeSpan HoraInicio { get; set; }
-
-        [Required(ErrorMessage = "O campo \"Hora de Término\" é obrigatório.")]
-        public TimeSpan HoraTermino { get; set; }
-
-        [Required(ErrorMessage = "O campo \"Tipo de Compromisso\" é obrigatório.")]
-        public TipoCompromissoEnum TipoCompromisso { get; set; }
-        public string? Local { get; set; }
-        public string? Link { get; set; }
-        public Contato? Contato { get; set; }
-        public Guid? ContatoId { get; set; }
-        public List<Contato> Contatos { get; set; } = new();
+        ContatosDisponiveis = new List<SelectListItem>();
     }
 
-    public class CadastrarCompromissoViewModel : FormularioCompromissoViewModel
+    public CadastrarCompromissoViewModel(List<Contato> contatos) : this()
     {
-        public CadastrarCompromissoViewModel()
+        foreach (var c in contatos)
         {
-            DataOcorrencia = DateTime.Today;
-            HoraInicio = DateTime.Now.TimeOfDay;
-            HoraTermino = DateTime.Now.AddHours(1).TimeOfDay;
-        }
-        public CadastrarCompromissoViewModel
-            (string assunto,
-            DateTime dataOcorrencia,
-            TimeSpan horaInicio,
-            TimeSpan horaTermino,
-            TipoCompromissoEnum tipoCompromisso,
-            string? local = null,
-            string? link = null,
-            Contato? contato = null)
-        {
-            Assunto = assunto;
-            DataOcorrencia = dataOcorrencia;
-            HoraInicio = horaInicio;
-            HoraTermino = horaTermino;
-            TipoCompromisso = tipoCompromisso;
-            Local = local;
-            Link = link;
-            Contato = contato;
+            var selecionarVM = new SelectListItem(c.Nome, c.Id.ToString());
+
+            ContatosDisponiveis?.Add(selecionarVM);
         }
     }
+}
 
-    public class EditarCompromissoViewModel : FormularioCompromissoViewModel
+public class EditarCompromissoViewModel : FormularioCompromissoViewModel
+{
+    public Guid Id { get; set; }
+
+    public EditarCompromissoViewModel()
     {
-        public Guid Id { get; set; }
-        public EditarCompromissoViewModel() { }
-
-        public EditarCompromissoViewModel
-            (Guid id,
-            string assunto,
-            DateTime dataOcorrencia,
-            TimeSpan horaInicio,
-            TimeSpan horaTermino,
-            TipoCompromissoEnum tipoCompromisso,
-            string? local = null,
-            string? link = null,
-            Contato? contato = null)
-        {
-            Id = id;
-            Assunto = assunto;
-            DataOcorrencia = dataOcorrencia;
-            HoraInicio = horaInicio;
-            HoraTermino = horaTermino;
-            TipoCompromisso = tipoCompromisso;
-            Local = local;
-            Link = link;
-            Contato = contato;
-        }
+        ContatosDisponiveis = new List<SelectListItem>();
     }
 
-    public class ExcluirCompromissoViewModel
+    public EditarCompromissoViewModel(
+        Guid id,
+        string assunto,
+        DateTime data,
+        TimeSpan horaInicio,
+        TimeSpan horaTermino,
+        TipoCompromissoEnum tipo,
+        string? local,
+        string? link,
+        Guid? contatoId,
+        List<Contato> contatos
+    ) : this()
     {
-        public Guid Id { get; set; }
-        public string Assunto { get; set; }
-        public ExcluirCompromissoViewModel() { }
+        Id = id;
+        Assunto = assunto;
+        Data = data;
+        HoraInicio = horaInicio;
+        HoraTermino = horaTermino;
+        Tipo = tipo;
+        Local = local;
+        Link = link;
+        ContatoId = contatoId;
 
-        public ExcluirCompromissoViewModel(Guid id, string assunto) : this()
+        foreach (var c in contatos)
         {
-            Id = id;
-            Assunto = assunto;
+            var selecionarVM = new SelectListItem(c.Nome, c.Id.ToString());
+
+            ContatosDisponiveis?.Add(selecionarVM);
         }
     }
+}
 
+public class ExcluirCompromissoViewModel
+{
+    public Guid Id { get; set; }
+    public string Assunto { get; set; }
 
-    public class VisualizarCompromissoViewModel
+    public ExcluirCompromissoViewModel(Guid id, string assunto)
     {
-        public List<DetalhesCompromissoViewModel> Registros { get; }
-
-        public VisualizarCompromissoViewModel(List<Compromisso> compromissos)
-        {
-            Registros = new List<DetalhesCompromissoViewModel>();
-
-            if (compromissos != null)
-            {
-                foreach (var m in compromissos)
-                {
-                    var detalhesVM = m.ParaDetalhesVM();
-                    Registros.Add(detalhesVM);
-                }
-            }
-        }
+        Id = id;
+        Assunto = assunto;
     }
+}
 
-    public class DetalhesCompromissoViewModel
+public class VisualizarCompromissosViewModel
+{
+    public List<DetalhesCompromissoViewModel> Registros { get; set; }
+
+    public VisualizarCompromissosViewModel(List<Compromisso> compromissos)
     {
-        public Guid Id { get; set; }
-        public string Assunto { get; set; }
-        public DateTime DataOcorrencia { get; set; }
-        public TimeSpan HoraInicio { get; set; }
-        public TimeSpan HoraTermino { get; set; }
-        public TipoCompromissoEnum TipoCompromisso { get; set; }
-        public string? Local { get; set; }
-        public string? Link { get; set; }
-        public Contato? Contato { get; set; }
-        public DetalhesCompromissoViewModel() { }
-        public DetalhesCompromissoViewModel
-            (Guid id,
-            string assunto, 
-            DateTime dataOcorrencia,
-            TimeSpan horaInicio,
-            TimeSpan horaTermino,
-            TipoCompromissoEnum tipoCompromisso,
-            string? local = null,
-            string? link = null, 
-            Contato? contato = null)
-        {
-            Id = id;
-            Assunto = assunto;
-            DataOcorrencia = dataOcorrencia;
-            HoraInicio = horaInicio;
-            HoraTermino = horaTermino;
-            TipoCompromisso = tipoCompromisso;
-            Local = local;
-            Link = link;
-            Contato = contato;
-        }
+        Registros = new List<DetalhesCompromissoViewModel>();
+
+        foreach (var c in compromissos)
+            Registros.Add(c.ParaDetalhesVM());
     }
+}
 
-    public class SelecionarCompromissoViewModel
+public class DetalhesCompromissoViewModel
+{
+    public Guid Id { get; set; }
+    public string Assunto { get; set; }
+    public DateTime Data { get; set; }
+    public TimeSpan HoraInicio { get; set; }
+    public TimeSpan HoraTermino { get; set; }
+    public TipoCompromissoEnum Tipo { get; set; }
+    public string? Local { get; set; }
+    public string? Link { get; set; }
+    public string? Contato { get; set; }
+
+    public DetalhesCompromissoViewModel(
+        Guid id,
+        string assunto,
+        DateTime data,
+        TimeSpan horaInicio,
+        TimeSpan horaTermino,
+        TipoCompromissoEnum tipo,
+        string? local,
+        string? link,
+        string? contato
+    )
     {
-        public Guid Id { get; set; }
-        public string Assunto { get; set; }
-        public SelecionarCompromissoViewModel() { }
-        public SelecionarCompromissoViewModel(Guid id, string assunto) : this()
-        {
-            Id = id;
-            Assunto = assunto;
-        }
+        Id = id;
+        Assunto = assunto;
+        Data = data;
+        HoraInicio = horaInicio;
+        HoraTermino = horaTermino;
+        Tipo = tipo;
+        Local = local;
+        Link = link;
+        Contato = contato;
     }
 }
