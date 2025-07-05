@@ -4,70 +4,128 @@ namespace eAgenda.Dominio.ModuloTarefa;
 
 public class Tarefa : EntidadeBase<Tarefa>
 {
-    public Guid Id { get; set; }
+    private double percentualConcluida;
+
     public string Titulo { get; set; }
     public string Prioridade { get; set; }
     public DateTime DataCriacao { get; set; }
     public DateTime DataConclusao { get; set; }
-    public string StatusConcluida { get; set; }
-    public double PercentualConcluida { get; set; }
-    public List<Item> Items { get; set; }
+    public string StatusConcluida { get; set; } = "Pendente"; // Default value
+    public List<Item> Itens { get; set; }
+
+    public double PercentualConcluido
+    {
+        get
+        {
+            if (Itens.Count == 0)
+                return default;
+
+            int qtdConcluidos = 0;
+
+            foreach (var item in Itens)
+            {
+                if (item.Concluido != "Pendente")
+                    qtdConcluidos++;
+            }
+
+            decimal percentualBase = qtdConcluidos / (decimal)Itens.Count * 100;
+
+            return (double)Math.Round(percentualBase, 2);
+        }
+    }
+
+    public bool Concluida { get; set; }
 
     public Tarefa()
     {
-        Items = new List<Item>();
+        Itens = new List<Item>();
     }
 
-    public Tarefa(string titulo, string prioridade, DateTime dataCriacao, double percentualConcluida, string statusConcluida, DateTime dataConclusao) : this()
+    public Tarefa(string titulo, string prioridade) : this()
     {
         Id = Guid.NewGuid();
         Titulo = titulo;
         Prioridade = prioridade;
+        Concluida = false;
+        DataCriacao = DateTime.Now;
+    }
+
+    public Tarefa(string titulo, string prioridade, DateTime dataCriacao, double percentualConcluida, string statusConcluida, DateTime dataConclusao) : this(titulo, prioridade)
+    {
+        Id = Guid.NewGuid();
         DataCriacao = dataCriacao;
-        PercentualConcluida = percentualConcluida;
+        this.percentualConcluida = percentualConcluida;
         StatusConcluida = statusConcluida;
         DataConclusao = dataConclusao;
     }
 
-    public void AtualizarPercentual()
+    public Tarefa(string titulo, string prioridade, DateTime dataCriacao, string statusConcluida, DateTime dataConclusao) : this(titulo, prioridade)
     {
-        if (Items == null || Items.Count == 0)
-        {
-            PercentualConcluida = 0;
-            return;
-        }
-
-        int quantidadeConcluidos = 0;
-
-        foreach (var item in Items)
-        {
-            if (item.StatusConclusao == "Concluído")
-            {
-                quantidadeConcluidos++;
-            }
-        }
-
-        PercentualConcluida = Math.Round((quantidadeConcluidos * 100.0) / Items.Count, 2);
+        Id = Guid.NewGuid();
+        DataCriacao = dataCriacao;
+        StatusConcluida = statusConcluida;
+        DataConclusao = dataConclusao;
     }
 
-    public override void AtualizarRegistro(Tarefa registro)
+    public void Concluir()
     {
-        Titulo = registro.Titulo;
-        Prioridade = registro.Prioridade;
-        DataCriacao = registro.DataCriacao;
-        DataConclusao = registro.DataConclusao;
-        StatusConcluida = registro.StatusConcluida;
-        PercentualConcluida = registro.PercentualConcluida;
-
-        // Atualiza os itens: limpa e adiciona os novos
-        Items.Clear();
-        if (registro.Items != null)
-        {
-            foreach (var item in registro.Items)
-            {
-                Items.Add(item);
-            }
-        }
+        Concluida = true;
+        DataConclusao = DateTime.Now;
     }
 
+    public void MarcarPendente()
+    {
+        Concluida = false;
+        DataConclusao = DateTime.MinValue;
+    }
+
+    public Item? ObterItem(Guid idItem)
+    {
+        return Itens.Find(i => i.Id.Equals(idItem));
+    }
+
+    public Item AdicionarItem(string titulo)
+    {
+        var item = new Item(titulo, this);
+
+        Itens.Add(item);
+
+        MarcarPendente();
+
+        return item;
+    }
+
+    public Item AdicionarItem(Item item)
+    {
+        Itens.Add(item);
+
+        return item;
+    }
+
+    public bool RemoverItem(Item item)
+    {
+        Itens.Remove(item);
+
+        MarcarPendente();
+
+        return true;
+    }
+
+    public void ConcluirItem(Item item)
+    {
+        item.Concluir();
+    }
+
+    public void MarcarItemPendente(Item item)
+    {
+        item.MarcarPendente();
+
+        MarcarPendente();
+    }
+
+    public override void AtualizarRegistro(Tarefa registroEditado)
+    {
+        Titulo = registroEditado.Titulo;
+        Prioridade = registroEditado.Prioridade;
+    }
 }

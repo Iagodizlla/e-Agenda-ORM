@@ -70,7 +70,7 @@
                                 <p class="mb-1"><strong>Percentual:</strong> @item.PercentualConcluida%</p>
                                 <p class="mb-1">
                                     <strong>Data de Conclusão:</strong>
-                                    @(item.DataConclusao == DateTime.MinValue ? "Pendente" : item.DataConclusao.ToString("dd/MM/yyyy"))
+                                    @(DateTime.Equals(item.DataConclusao, new DateTime(1753,1,1)) ? "Pendente" : item.DataConclusao.ToString("dd/MM/yyyy"))
                                 </p>
 
                                 <div class="d-flex justify-content-end gap-2 mt-2">

@@ -1,6 +1,7 @@
 ﻿using eAgenda.Dominio.ModuloTarefa;
 using eAgenda.Infraestrutura.Compartilhado;
 using eAgenda.Infraestrutura.ModuloTarefa;
+using eAgenda.Infraestrutura.SqlServer.ModuloTarefa;
 using eAgenda.WebApp.Extensions;
 using eAgenda.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -11,13 +12,11 @@ namespace eAgenda.WebApp.Controllers
     [Route("tarefas")]
     public class TarefaController : Controller
     {
-        private readonly ContextoDeDados contextoDados;
         private readonly IRepositorioTarefa repositorioTarefa;
 
         public TarefaController()
         {
-            contextoDados = new ContextoDeDados(true);
-            repositorioTarefa = new RepositorioTarefaEmArquivo(contextoDados);
+            repositorioTarefa = new RepositorioTarefaEmSql();
         }
 
         [HttpGet]
@@ -26,12 +25,6 @@ namespace eAgenda.WebApp.Controllers
             List<Tarefa> registros;
 
             List<Tarefa> tarefas = repositorioTarefa.SelecionarTarefas();
-
-            foreach (var tarefa in tarefas)
-            {
-                repositorioTarefa.AtualizarPercentual(tarefa.Id);
-                repositorioTarefa.AtualizarStatus(tarefa.Id);
-            }
 
             switch (status)
             {
@@ -81,10 +74,9 @@ namespace eAgenda.WebApp.Controllers
             if (!ModelState.IsValid)
                 return View(cadastrarVM);
 
-
             var entidade = cadastrarVM.ParaEntidade();
 
-            repositorioTarefa.CadastrarTarefa(entidade);
+            repositorioTarefa.Cadastrar(entidade);
 
             return RedirectToAction(nameof(Index));
         }
@@ -92,7 +84,7 @@ namespace eAgenda.WebApp.Controllers
         [HttpGet("editar/{id:guid}")]
         public IActionResult Editar(Guid id)
         {
-            var tarefa = repositorioTarefa.SelecionarPorId(id);
+            var tarefa = repositorioTarefa.SelecionarTarefaPorId(id);
 
             if (tarefa == null)
                 return NotFound();
@@ -103,9 +95,9 @@ namespace eAgenda.WebApp.Controllers
                 tarefa.Prioridade,
                 tarefa.DataCriacao,
                 tarefa.StatusConcluida,
-                tarefa.PercentualConcluida,
+                tarefa.PercentualConcluido,
                 tarefa.DataConclusao,
-                tarefa.Items
+                tarefa.Itens
             );
 
             return View(editarVM);
@@ -131,7 +123,7 @@ namespace eAgenda.WebApp.Controllers
 
             var entidadeEditada = editarVM.ParaEntidade();
 
-            repositorioTarefa.EditarTarefa(id, entidadeEditada);
+            repositorioTarefa.Editar(id, entidadeEditada);
 
             return RedirectToAction(nameof(Index));
         }
@@ -140,7 +132,7 @@ namespace eAgenda.WebApp.Controllers
         [HttpGet("excluir/{id:guid}")]
         public IActionResult Excluir(Guid id)
         {
-            var registroSelecionado = repositorioTarefa.SelecionarPorId(id);
+            var registroSelecionado = repositorioTarefa.SelecionarTarefaPorId(id);
 
             var excluirVM = new ExcluirTarefaViewModel(registroSelecionado.Id, registroSelecionado.Titulo);
 
@@ -150,7 +142,7 @@ namespace eAgenda.WebApp.Controllers
         [HttpPost("excluir/{id:guid}")]
         public IActionResult ExcluirConfirmado(Guid id)
         {
-            repositorioTarefa.ExcluirTarefa(id);
+            repositorioTarefa.Excluir(id);
 
             return RedirectToAction(nameof(Index));
         }
@@ -158,7 +150,7 @@ namespace eAgenda.WebApp.Controllers
         [HttpGet("detalhes/{id:guid}")]
         public IActionResult Detalhes(Guid id)
         {
-            var tarefa = repositorioTarefa.SelecionarPorId(id);
+            var tarefa = repositorioTarefa.SelecionarTarefaPorId(id);
 
             if (tarefa == null)
                 return NotFound();
@@ -169,8 +161,8 @@ namespace eAgenda.WebApp.Controllers
                 tarefa.Prioridade,
                 tarefa.DataCriacao,
                 tarefa.StatusConcluida,
-                tarefa.PercentualConcluida,
-                tarefa.Items,
+                tarefa.PercentualConcluido,
+                tarefa.Itens,
                 tarefa.DataConclusao
             );
 

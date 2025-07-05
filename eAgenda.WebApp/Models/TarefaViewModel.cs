@@ -46,11 +46,11 @@ public abstract class FormularioTarefaViewModel
 
         public Tarefa ParaEntidade()
         {
-            var tarefa = new Tarefa(
+            var tarefa = new Tarefa
+            (
                 Titulo,
                 Prioridade,
                 DataCriacao,
-                PercentualConcluida,
                 StatusConcluida,
                 DataConclusao
             );
@@ -58,7 +58,7 @@ public abstract class FormularioTarefaViewModel
             for (int i = 0; i < TitulosItens?.Count; i++)
             {
                 var item = new Item(TitulosItens[i], StatusConclusoesItens[i], tarefa);
-                tarefa.Items.Add(item);
+                tarefa.Itens.Add(item);
             }
 
             return tarefa;
@@ -96,26 +96,25 @@ public abstract class FormularioTarefaViewModel
                 foreach (var item in itens)
                 {
                     TitulosItens.Add(item.Titulo);
-                    StatusConclusoesItens.Add(item.StatusConclusao);
+                    StatusConclusoesItens.Add(item.Concluido);
                 }
             }
         }
 
         public Tarefa ParaEntidade()
         {
-            var tarefa = new Tarefa(
-                Titulo,
-                Prioridade,
-                DataCriacao,
-                PercentualConcluida,
-                StatusConcluida,
-                DataConclusao
-            );
+            var tarefa = new Tarefa {
+                Titulo = Titulo,
+                Prioridade = Prioridade,
+                DataCriacao = DataCriacao,
+                StatusConcluida = StatusConcluida,
+                DataConclusao = DataConclusao
+            };
 
             for (int i = 0; i < TitulosItens?.Count; i++)
             {
                 var item = new Item(TitulosItens[i], StatusConclusoesItens[i], tarefa);
-                tarefa.Items.Add(item);
+                tarefa.Itens.Add(item);
             }
 
             return tarefa;

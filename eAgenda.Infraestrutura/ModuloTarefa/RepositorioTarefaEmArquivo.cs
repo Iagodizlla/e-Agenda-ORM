@@ -26,23 +26,23 @@ namespace eAgenda.Infraestrutura.ModuloTarefa
         public void AtualizarPercentual(Guid id)
         {
             Tarefa tarefa = SelecionarPorId(id);
-            if (tarefa.Items == null || tarefa.Items.Count == 0)
+            if (tarefa.Itens == null || tarefa.Itens.Count == 0)
             {
-                tarefa.PercentualConcluida = 0;
+                //tarefa.PercentualConcluido = "2";
                 return;
             }
 
             int quantidadeConcluidos = 0;
 
-            foreach (var item in tarefa.Items)
+            foreach (var item in tarefa.Itens)
             {
-                if (item.StatusConclusao == "Concluído")
+                //if (item.StatusConclusao == "Concluído")
                 {
                     quantidadeConcluidos++;
                 }
             }
 
-            tarefa.PercentualConcluida = Math.Round((quantidadeConcluidos * 100.0) / tarefa.Items.Count, 2);
+            //tarefa.PercentualConcluida = Math.Round((quantidadeConcluidos * 100.0) / tarefa.Items.Count, 2);
             contexto.Salvar();
             return;
         }
@@ -53,11 +53,11 @@ namespace eAgenda.Infraestrutura.ModuloTarefa
 
             if (tarefa.StatusConcluida == "Concluído") return;
 
-            if (tarefa.PercentualConcluida == 100)
-            {
-                tarefa.DataConclusao = DateTime.Now;
-                tarefa.StatusConcluida = "Concluído";
-            }
+            //if (tarefa.PercentualConcluida == 100)
+            //{
+            //    tarefa.DataConclusao = DateTime.Now;
+            //    tarefa.StatusConcluida = "Concluído";
+            //}
 
             contexto.Salvar();
             return;
@@ -69,7 +69,7 @@ namespace eAgenda.Infraestrutura.ModuloTarefa
 
             foreach (var item in registros)
             {
-                if (item.PercentualConcluida == 100)
+                //if (item.PercentualConcluida == 100)
                     tarefasConcluidas.Add(item);
             }
 
@@ -82,7 +82,7 @@ namespace eAgenda.Infraestrutura.ModuloTarefa
 
             foreach (var item in registros)
             {
-                if (item.PercentualConcluida != 100)
+                //if (item.PercentualConcluida != 100)
                     tarefasPendentes.Add(item);
             }
 
@@ -138,6 +138,41 @@ namespace eAgenda.Infraestrutura.ModuloTarefa
             }
 
             return false;
+        }
+
+        public void Cadastrar(Tarefa tarefa)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Editar(Guid idTarefa, Tarefa tarefaEditada)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Excluir(Guid idTarefa)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AdicionarItem(Item item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool AtualizarItem(Item itemAtualizado)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool RemoverItem(Item item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Tarefa? SelecionarTarefaPorId(Guid idTarefa)
+        {
+            throw new NotImplementedException();
         }
     }
 }
