@@ -3,10 +3,6 @@ using eAgenda.Dominio.ModuloCompromisso;
 using eAgenda.Dominio.ModuloContato;
 using eAgenda.Dominio.ModuloDespesa;
 using eAgenda.Dominio.ModuloTarefa;
-using eAgenda.Infraestrutura.Compartilhado;
-using eAgenda.Infraestrutura.ModuloCategoria;
-using eAgenda.Infraestrutura.ModuloDespesa;
-using eAgenda.Infraestrutura.ModuloTarefa;
 using eAgenda.Infraestrutura.SqlServer.ModuloCategoria;
 using eAgenda.Infraestrutura.SqlServer.ModuloCompromisso;
 using eAgenda.Infraestrutura.SqlServer.ModuloContato;
@@ -23,7 +19,6 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddControllersWithViews();
         builder.Services.AddControllersWithViews(options =>
         {
             options.Filters.Add<ValidarModeloAttribute>();
