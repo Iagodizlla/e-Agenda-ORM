@@ -1,194 +1,207 @@
 ﻿using eAgenda.Dominio.ModuloCategoria;
 using eAgenda.Dominio.ModuloDespesa;
-using eAgenda.Infraestrutura.Compartilhado;
-using eAgenda.Infraestrutura.ModuloCategoria;
-using eAgenda.Infraestrutura.ModuloDespesa;
 using eAgenda.WebApp.Extensions;
 using eAgenda.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Reflection;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using static eAgenda.WebApp.Models.FormularioDespesaViewModel;
 
-namespace eAgenda.WebApp.Controllers
+namespace eAgenda.WebApp.Controllers;
+
+[Route("despesas")]
+public class DespesaController : Controller
 {
-    [Route("despesas")]
-    public class DespesaController : Controller
+    private readonly IRepositorioDespesa repositorioDespesa;
+    private readonly IRepositorioCategoria repositorioCategoria;
+
+    public DespesaController(
+        IRepositorioDespesa repositorioDespesa,
+        IRepositorioCategoria repositorioCategoria
+    )
     {
-        private readonly ContextoDeDados contextoDados;
-        private readonly IRepositorioDespesa repositorioDespesa;
-        private readonly IRepositorioCategoria repositorioCategoria;
+        this.repositorioDespesa = repositorioDespesa;
+        this.repositorioCategoria = repositorioCategoria;
+    }
 
-        public DespesaController()
+    [HttpGet]
+    public IActionResult Index()
+    {
+        var registros = repositorioDespesa.SelecionarRegistros();
+
+        var visualizarVM = new VisualizarDespesasViewModel(registros);
+
+        return View(visualizarVM);
+    }
+
+    [HttpGet("cadastrar")]
+    public IActionResult Cadastrar()
+    {
+        var categoriasDisponiveis = repositorioCategoria.SelecionarRegistros();
+
+        var cadastrarVM = new CadastrarDespesaViewModel(categoriasDisponiveis);
+
+        return View(cadastrarVM);
+    }
+
+    [HttpPost("cadastrar")]
+    [ValidateAntiForgeryToken]
+    public IActionResult Cadastrar(CadastrarDespesaViewModel cadastrarVM)
+    {
+        var categoriasDisponiveis = repositorioCategoria.SelecionarRegistros();
+
+        if (!ModelState.IsValid)
         {
-            contextoDados = new ContextoDeDados(true);
-            repositorioDespesa = new RepositorioDespesaEmArquivo(contextoDados);
-            repositorioCategoria = new RepositorioCategoriaEmArquivo(contextoDados);
-        }
-
-        [HttpGet]
-        public IActionResult Index()
-        {
-            var registros = repositorioDespesa.SelecionarRegistros();
-
-            var visualizarVM = new VisualizarDespesaViewModel(registros);
-            
-            foreach (var item in registros)
+            foreach (var cd in categoriasDisponiveis)
             {
-                item.categoriasTitulo = new List<string>();
-                foreach (var idCategoria in item.categorias)
-                {
-                    
-                    item.categoriasTitulo.Add(repositorioCategoria.SelecionarRegistroPorId(idCategoria).Titulo);
-                }
-                repositorioDespesa.EditarRegistro(item.Id, item);
+                var selecionarVM = new SelectListItem(cd.Titulo, cd.Id.ToString());
+
+                cadastrarVM.CategoriasDisponiveis?.Add(selecionarVM);
             }
 
-            return View(visualizarVM);
-        }
-
-        [HttpGet("cadastrar")]
-        public IActionResult Cadastrar()
-        {
-            var cadastrarVM = new CadastrarDespesaViewModel();
-            cadastrarVM.CategoriasDisponiveis = repositorioCategoria.SelecionarRegistros();
             return View(cadastrarVM);
-            
         }
 
-        [HttpPost("cadastrar")]
-        [ValidateAntiForgeryToken]
-        public IActionResult Cadastrar(CadastrarDespesaViewModel cadastrarVM)
+        var despesa = cadastrarVM.ParaEntidade();
+
+        var categoriasSelecionadas = cadastrarVM.CategoriasSelecionadas;
+
+        if (categoriasSelecionadas is not null)
         {
-            var registros = repositorioDespesa.SelecionarRegistros() ?? new List<Despesa>();
-            var categorias = repositorioCategoria.SelecionarRegistros();
-            if (cadastrarVM.categorias == null || !cadastrarVM.categorias.Any())
+            foreach (var cs in categoriasSelecionadas)
             {
-                ModelState.AddModelError("categorias", "Selecione pelo menos uma categoria.");
-                cadastrarVM.CategoriasDisponiveis = repositorioCategoria.SelecionarRegistros();
-            }
-
-            if (!ModelState.IsValid)
-            return View(cadastrarVM);
-
-            foreach (var item in cadastrarVM.categorias)
-            {
-
-                cadastrarVM.categoriasTitulo.Add(repositorioCategoria.SelecionarRegistroPorId(item).Titulo);
-
-            }
-            var entidade = cadastrarVM.ParaEntidade();    
-            repositorioDespesa.CadastrarRegistro(entidade);
-            foreach (var item in entidade.categorias)
-            {
-
-                foreach (var item2 in categorias)
+                foreach (var cd in categoriasDisponiveis)
                 {
-                    Categoria c = item2;
-                    if (c.idDespesas == null) c.idDespesas = new List<Guid>();
-                    if (c.Id == item)
+                    if (cs.Equals(cd.Id))
                     {
-                        c.idDespesas.Add(entidade.Id);
-                        repositorioCategoria.EditarRegistro(item, c);
+                        despesa.RegistarCategoria(cd);
+                        break;
                     }
                 }
-
             }
-
-            return RedirectToAction(nameof(Index));
         }
 
-        [HttpGet("editar/{id:guid}")]
-        public IActionResult Editar(Guid id)
+        repositorioDespesa.CadastrarRegistro(despesa);
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet("editar/{id:guid}")]
+    public ActionResult Editar(Guid id)
+    {
+        var categoriasDisponiveis = repositorioCategoria.SelecionarRegistros();
+
+        var registroSelecionado = repositorioDespesa.SelecionarRegistroPorId(id);
+
+        if (registroSelecionado is null)
+            return RedirectToAction(nameof(Index));
+
+        var editarVM = new EditarDespesaViewModel(
+            id,
+            registroSelecionado.Descricao,
+            registroSelecionado.Valor,
+            registroSelecionado.DataOcorencia,
+            registroSelecionado.FormaPagamento,
+            registroSelecionado.Categorias,
+            categoriasDisponiveis
+        );
+
+        return View(editarVM);
+    }
+
+    [HttpPost("editar/{id:guid}")]
+    [ValidateAntiForgeryToken]
+    public ActionResult Editar(Guid id, EditarDespesaViewModel editarVM)
+    {
+        var categoriasDisponiveis = repositorioCategoria.SelecionarRegistros();
+
+        if (!ModelState.IsValid)
         {
-            var registroSelecionado = repositorioDespesa.SelecionarRegistroPorId(id);
-            var editarVM = new EditarDespesaViewModel(
-                id,
-                registroSelecionado.descricao,
-                registroSelecionado.dataOcorrencia,
-                registroSelecionado.valor,
-                registroSelecionado.formaDoPagamento,
-                registroSelecionado.categorias,
-                registroSelecionado.categoriasTitulo
-            );
-            editarVM.CategoriasDisponiveis = repositorioCategoria.SelecionarRegistros();
+            foreach (var cd in categoriasDisponiveis)
+            {
+                var selecionarVM = new SelectListItem(cd.Titulo, cd.Id.ToString());
+
+                editarVM.CategoriasDisponiveis?.Add(selecionarVM);
+            }
 
             return View(editarVM);
         }
-        [HttpPost("editar/{id:guid}")]
-        [ValidateAntiForgeryToken]
-        public IActionResult Editar(Guid id, EditarDespesaViewModel editarVM)
+
+        // Obtém dados editados
+        var despesaEditada = editarVM.ParaEntidade();
+
+        var categoriasSelecionadas = editarVM.CategoriasSelecionadas;
+
+        // Adiciona as categorias selecionadas
+        if (categoriasSelecionadas is not null)
         {
-            var categorias = repositorioCategoria.SelecionarRegistros();
-            
-            foreach (var item in editarVM.categorias)
+            foreach (var idSelecionado in categoriasSelecionadas)
             {
-                if(!editarVM.categoriasTitulo.Contains(repositorioCategoria.SelecionarRegistroPorId(item).Titulo))
+                foreach (var categoriaDisponivel in categoriasDisponiveis)
                 {
-                    editarVM.categoriasTitulo.Add(repositorioCategoria.SelecionarRegistroPorId(item).Titulo);
+                    if (categoriaDisponivel.Id.Equals(idSelecionado))
+                    {
+                        despesaEditada.RegistarCategoria(categoriaDisponivel);
+                        break;
+                    }
                 }
             }
+        }
 
-            var entidadeEditada = editarVM.ParaEntidade();
-            entidadeEditada.Id = id;
-            repositorioDespesa.EditarRegistro(id, entidadeEditada);
+        // Atualiza os dados da despesa selecionada
+        repositorioDespesa.EditarRegistro(id, despesaEditada);
 
-                foreach (var item2 in categorias)
-                {
-                    Categoria categoria = item2;
-                    if (categoria.idDespesas == null) categoria.idDespesas = new List<Guid>();
-                    if (categoria.idDespesas.Contains(entidadeEditada.Id) && !(entidadeEditada.categorias.Contains(categoria.Id)))
-                    {
-                        categoria.idDespesas.Remove(entidadeEditada.Id);
-                        categoria.despesas.Remove(entidadeEditada);
-                        repositorioCategoria.EditarRegistro(categoria.Id, categoria);
-                    }
-                    else if (entidadeEditada.categorias.Contains(categoria.Id))
-                    {
-                       if(!categoria.idDespesas.Contains(entidadeEditada.Id))
-                        {
-                            categoria.idDespesas.Add(entidadeEditada.Id);
-                            repositorioCategoria.EditarRegistro(categoria.Id, categoria);
-                        }
-                    }
-                }
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet("excluir/{id:guid}")]
+    public IActionResult Excluir(Guid id)
+    {
+        var registroSelecionado = repositorioDespesa.SelecionarRegistroPorId(id);
+
+        if (registroSelecionado is null)
             return RedirectToAction(nameof(Index));
-        }
 
+        var excluirVM = new ExcluirDespesaViewModel(
+            registroSelecionado.Id,
+            registroSelecionado.Descricao
+        );
 
-        [HttpGet("excluir/{id:guid}")]
-        public IActionResult Excluir(Guid id)
-        {
-            var registroSelecionado = repositorioDespesa.SelecionarRegistroPorId(id);
+        return View(excluirVM);
+    }
 
-            var excluirVM = new ExcluirDespesaViewModel(registroSelecionado.Id, registroSelecionado.descricao);
+    [HttpPost("excluir/{id:guid}")]
+    [ValidateAntiForgeryToken]
+    public IActionResult ExcluirConfirmado(Guid id)
+    {
+        var registroSelecionado = repositorioDespesa.SelecionarRegistroPorId(id);
 
-            return View(excluirVM);
-        }
-
-        [HttpPost("excluir/{id:guid}")]
-        public IActionResult ExcluirConfirmado(Guid id)
-        {
-            
-            foreach (var item in repositorioCategoria.SelecionarRegistros())
-            {
-                List<Guid> listaAuxiliar = new List<Guid>();
-                Categoria c = item;
-                foreach (var item2 in c.idDespesas)
-                { 
-                    if (item2 == id)
-                    {
-                    listaAuxiliar.Add(item2);
-                    
-                    }
-                }
-                foreach (var item2 in listaAuxiliar)
-                {
-                    c.idDespesas.Remove(item2);
-                    repositorioCategoria.EditarRegistro(item.Id, c);
-                }
-            }
-            repositorioDespesa.ExcluirRegistro(id);
+        if (registroSelecionado is null)
             return RedirectToAction(nameof(Index));
-        }
+
+        foreach (var cat in registroSelecionado.Categorias.ToList())
+            registroSelecionado.RemoverCategoria(cat);
+
+        repositorioDespesa.ExcluirRegistro(id);
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    public IActionResult Detalhes(Guid id)
+    {
+        var registroSelecionado = repositorioDespesa.SelecionarRegistroPorId(id);
+
+        if (registroSelecionado is null)
+            return RedirectToAction(nameof(Index));
+
+        var detalhesVM = new DetalhesDespesaViewModel(
+            id,
+            registroSelecionado.Descricao,
+            registroSelecionado.Valor,
+            registroSelecionado.DataOcorencia,
+            registroSelecionado.FormaPagamento,
+            registroSelecionado.Categorias
+        );
+
+        return View(detalhesVM);
     }
 }

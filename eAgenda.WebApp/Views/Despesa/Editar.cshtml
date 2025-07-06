@@ -1,4 +1,5 @@
-﻿@using static eAgenda.WebApp.Models.FormularioDespesaViewModel
+﻿﻿@using eAgenda.Dominio.ModuloDespesa
+
 @model EditarDespesaViewModel
 
 @{
@@ -11,58 +12,56 @@
     <div class="col-md-8">
         <div class="card rounded-4 border-0">
             <div class="card-body p-md-5">
-                <form asp-action="Editar" asp-route-id="@Model.Id" method="post">
+                <form asp-action="Editar" asp-route-id="@Model.Id">
                     <h3>Formulário de Edição</h3>
 
-                    <div class="form-group d-grid mt-3 gap-2">
-                        <label asp-for="descricao" class="control-label fs-5">Descrição:</label>
-                        <input asp-for="descricao" class="form-control" value="@Model.descricao" />
-                        <span asp-validation-for="descricao" class="text-danger"></span>
+                    <div class="form-group d-grid gap-2 mt-3">
+                        <label asp-for="Descricao" class="control-label fs-5">Descrição:</label>
+                        <input asp-for="Descricao" class="form-control" />
+                        <span asp-validation-for="Descricao" class="text-danger"></span>
                     </div>
 
-                    <div class="form-group d-grid mt-3 gap-2">
-                        <label asp-for="valor" class="control-label fs-5">Valor (R$):</label>
-                        <input asp-for="valor" class="form-control" type="number" value="@Model.valor" />
-                        <span asp-validation-for="valor" class="text-danger"></span>
+                    <div class="form-group d-grid gap-2 mt-3">
+                        <label asp-for="Valor" class="control-label fs-5">Valor:</label>
+                        <input asp-for="Valor" type="number" min="0" step="0.01" pattern="^\d+(?:\,\d{1,2})?$" class="form-control" />
+                        <span asp-validation-for="Valor" class="text-danger"></span>
                     </div>
 
-                    <div class="form-group d-grid mt-3 gap-2">
-                        <label asp-for="dataOcorrencia" class="control-label fs-5">Data De Ocorrência:</label>
-                        <input asp-for="dataOcorrencia" class="form-control" type="date" value="@Model.dataOcorrencia.ToString("yyyy-MM-dd")" />
-                        <span asp-validation-for="dataOcorrencia" class="text-danger"></span>
+                    <div class="form-group d-grid gap-2 mt-3">
+                        <label asp-for="DataOcorrencia" class="control-label fs-5">Data de Ocorrência:</label>
+                        <input asp-for="DataOcorrencia" type="date" class="form-control" />
+                        <span asp-validation-for="DataOcorrencia" class="text-danger"></span>
                     </div>
 
-                    <div class="form-group d-grid mt-3 gap-2">
-                        <label asp-for="formaDoPagamento" class="control-label fs-5">Forma do Pagamento:</label>
-                        <select asp-for="formaDoPagamento" class="form-control">
-                            <option value="À Vista" selected="@("À Vista" == Model.formaDoPagamento)">À Vista</option>
-                            <option value="Débito" selected="@("Débito" == Model.formaDoPagamento)">Débito</option>
-                            <option value="Crédito" selected="@("Crédito" == Model.formaDoPagamento)">Crédito</option>
-                        </select>
-                        <span asp-validation-for="formaDoPagamento" class="text-danger"></span>
+                    <div class="form-group d-grid gap-2 mt-3">
+                        <label asp-for="FormaPagamento" class="control-label fs-5">Forma de Pagamento:</label>
+                        <select asp-for="FormaPagamento" asp-items="@Html.GetEnumSelectList<FormaPagamento>()" class="form-select"></select>
+                        <span asp-validation-for="FormaPagamento" class="text-danger"></span>
                     </div>
 
-                    <div class="form-group d-grid mt-3 gap-2">
+                    <div class="form-group d-grid gap-2 mt-3">
                         <label class="control-label fs-5">Categorias:</label>
-                        <div>
-                            @foreach (var categoria in Model.CategoriasDisponiveis)
+                        <div class="d-flex flex-wrap gap-5 mt-2">
+                            @for (int i = 0; i < Model.CategoriasDisponiveis?.Count(); i++)
                             {
+                                var categoria = Model.CategoriasDisponiveis.ElementAt(i);
                                 <div class="form-check">
                                     <input class="form-check-input"
                                            type="checkbox"
-                                           name="categorias"
-                                           value="@categoria.Id"
-                                    @(Model.categorias != null && Model.categorias.Contains(categoria.Id) ? "checked" : "") />
-                                    <label class="form-check-label">@categoria.Titulo</label>
-
+                                           name="CategoriasSelecionadas"
+                                           value="@categoria.Value"
+                                           id="categoria_@categoria.Value"
+                                           @(Model.CategoriasSelecionadas != null && Model.CategoriasSelecionadas.Contains(Guid.Parse(categoria.Value)) ? "checked" : "") />
+                                    <label class="form-check-label" for="categoria_@categoria.Value">
+                                        @categoria.Text
+                                    </label>
                                 </div>
                             }
-
-
                         </div>
-                        <span asp-validation-for="categorias" class="text-danger"></span>
+                        <span asp-validation-for="CategoriasSelecionadas" class="text-danger"></span>
                     </div>
-                    <div class="form-group d-flex align-items-center justify-content-end mt-5 gap-3">
+
+                    <div class="form-group d-flex align-items-center justify-content-end gap-3 mt-5">
                         <a href="/despesas">Voltar para a listagem</a>
                         <button type="submit" class="btn btn-primary rounded-3 px-5">Confirmar</button>
                     </div>

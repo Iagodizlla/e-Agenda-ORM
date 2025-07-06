@@ -1,5 +1,4 @@
-﻿@using static eAgenda.WebApp.Models.FormularioCategoriaViewModel
-@model EditarCategoriaViewModel
+﻿@model EditarCategoriaViewModel
 
 @{
     Layout = "_Layout";
@@ -11,16 +10,23 @@
     <div class="col-md-8">
         <div class="card rounded-4 border-0">
             <div class="card-body p-md-5">
-                <form asp-action="Editar" asp-route-id="@Model.Id" method="post">
-                    <h3>Formulário de Edição</h3>
+                <form asp-action="Editar" asp-route-id="@Model.Id">
+                    <h3>Formulário de Cadastro</h3>
 
-                    <div class="form-group d-grid mt-3 gap-2">
+                    @if (ViewData.ModelState["CadastroUnico"]?.Errors.Count > 0)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show my-3" role="alert">
+                            @ViewData.ModelState["CadastroUnico"]!.Errors.First().ErrorMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <div class="form-group d-grid gap-2 mt-3">
                         <label asp-for="Titulo" class="control-label fs-5">Título:</label>
-                        <input asp-for="Titulo" class="form-control" value="@Model.Titulo" />
+                        <input asp-for="Titulo" class="form-control" />
                         <span asp-validation-for="Titulo" class="text-danger"></span>
-
                     </div>
-                    <div class="form-group d-flex align-items-center justify-content-end mt-5 gap-3">
+                    <div class="form-group d-flex align-items-center justify-content-end gap-3 mt-5">
                         <a href="/categorias">Voltar para a listagem</a>
                         <button type="submit" class="btn btn-primary rounded-3 px-5">Confirmar</button>
                     </div>
@@ -31,5 +37,5 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial"/>
 }

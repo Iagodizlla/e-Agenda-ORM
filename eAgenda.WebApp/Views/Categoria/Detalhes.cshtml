@@ -1,0 +1,55 @@
+﻿@model DetalhesCategoriaViewModel;
+
+@{
+    Layout = "_Layout";
+    ViewBag.Titulo = "Detalhes da Categoria";
+}
+
+<hr />
+<div class="row justify-content-center my-5">
+    <div class="col-md-8">
+
+        <div class="card rounded-4 border-0">
+            <div class="card-body p-md-5">
+                <h3>Detalhes</h3>
+
+                <div class="form-group d-grid gap-2 mt-3">
+                    <label for="Titulo" class="control-label fs-5">Título:</label>
+                    <input name="Titulo" class="form-control" value="@Model.Titulo" readonly disabled />
+                </div>
+
+                @if (Model.Despesas.Count > 0)
+                {
+                    <label for="Despesas" class="control-label fs-5 mt-4">Despesas:</label>
+
+                    <table class="table table-sm table-striped mt-2">
+                        <thead>
+                            <tr>
+                                <th>Data de Ocorrência</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var d in Model.Despesas)
+                            {
+                                <tr>
+                                    <td>@d.DataOcorrencia.ToShortDateString()</td>
+                                    <td>@d.Descricao</td>
+                                    <td>@d.Valor.ToString("C2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <p for="ValorTotal" class="control-label fs-5 text-end mt-3"><strong>Valor Total:</strong> @Model.TotalDespesas.ToString("C2")</p>
+                }
+
+                <div class="form-group d-flex align-items-center justify-content-end gap-3 mt-5">
+                    <a href="/categorias">Voltar para a listagem</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

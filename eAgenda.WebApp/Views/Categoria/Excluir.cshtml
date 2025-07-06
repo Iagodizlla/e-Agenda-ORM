@@ -1,5 +1,4 @@
-﻿@using static eAgenda.WebApp.Models.FormularioCategoriaViewModel
-@model ExcluirCategoriaViewModel
+﻿@model ExcluirCategoriaViewModel
 
 @{
     Layout = "_Layout";
@@ -13,21 +12,15 @@
             <div class="card-body p-md-5">
                 <h3>Formulário de Exclusão</h3>
 
-                <p class="mt-4">Você deseja realmente excluir a Categoria "@Model.Titulo"?</p>
-                @Html.ValidationMessage("ExclusaoProibida", new { @class = "text-danger" })
-                <form action="/categorias/excluir/@Model.Id" method="post">
-                    <input name="Titulo" type="hidden" value="@Model.Titulo" />
-                    <input name="Id" type="hidden" value="@Model.Id" />
+                <p class="mt-4">Você deseja realmente excluir a categoria "@Model.Titulo"?</p>
+
+                <form asp-action="Excluir" asp-route-id="@Model.Id">
                     <div class="form-group d-flex align-items-center justify-content-end gap-3">
                         <a href="/categorias">Voltar para a listagem</a>
                         <button type="submit" class="btn btn-danger px-5">Confirmar</button>
-
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

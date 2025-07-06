@@ -1,4 +1,6 @@
-﻿@{
+﻿@model VisualizarDespesasViewModel
+
+@{
     Layout = "_Layout";
     ViewBag.Titulo = "Visualização de Despesas";
 }
@@ -18,18 +20,13 @@
         <div class="col-12 col-md-3">
             <div class="card border-0">
                 <div class="card-body">
-                    <h5 class="card-title">Despesa: @item.valor R$</h5>
-                    <p class="card-text"><span class="fw-semibold">Descrição:</span> @item.descricao</p>
-                    <p class="card-text"><span class="fw-semibold">Forma do Pagamento:</span> @item.formaDoPagamento</p>
-                    <p class="card-text"><span class="fw-semibold">Data de Ocorrência:</span> @item.dataOcorrencia.ToString("dd/MM/yyyy")</p>
-                    <p class="card-text">
-                        <span class="fw-semibold">Categorias:</span>
-                        @string.Join(", ", item.categoriasTitulo ?? new List<string>())
-
-                    </p>
+                    <h5 class="card-title">@item.Descricao</h5>
+                    <p class="card-text mb-0"><span class="fw-semibold">Data de Ocorrência:</span> @item.DataOcorrencia.ToShortDateString()</p>
+                    <p class="card-text mb-0"><span class="fw-semibold">Categorias:</span> @string.Join(", ", item.Categorias)</p>
+                    <p class="card-text"><span class="fw-semibold">Valor:</span> @item.Valor.ToString("C2")</p>
 
 
-                    <span class="d-flex justify-content-end mt-4 gap-1">
+                    <span class="d-flex gap-1 justify-content-end mt-4">
                         <a href="/despesas/editar/@item.Id" class="btn btn-primary rounded-circle opcao-card">
                             <i class="bi bi-pencil-square"></i>
                         </a>

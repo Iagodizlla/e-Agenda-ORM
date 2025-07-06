@@ -1,24 +1,21 @@
 ﻿using eAgenda.Dominio.ModuloCategoria;
 using eAgenda.WebApp.Models;
-using static eAgenda.WebApp.Models.FormularioCategoriaViewModel;
 
-namespace eAgenda.WebApp.Extensions
+namespace eAgenda.WebApp.Extensions;
+
+public static class CategoriaExtensions
 {
-    public static class CategoriaExtensions
+    public static Categoria ParaEntidade(this FormularioCategoriaViewModel formularioVM)
     {
-        public static Categoria ParaEntidade(this FormularioCategoriaViewModel formularioVM)
-        {
-            return new Categoria(formularioVM.Titulo, formularioVM.idDespesas, formularioVM.despesas);
-        }
+        return new Categoria(formularioVM.Titulo);
+    }
 
-        public static DetalhesCategoriaViewModel ParaDetalhesVM(this Categoria categoria)
-        {
-            return new DetalhesCategoriaViewModel(
+    public static DetalhesCategoriaViewModel ParaDetalhesVM(this Categoria categoria)
+    {
+        return new DetalhesCategoriaViewModel(
                 categoria.Id,
                 categoria.Titulo,
-                categoria.despesas,
-                categoria.idDespesas
-            );
-        }
+                categoria.Despesas
+        );
     }
 }
