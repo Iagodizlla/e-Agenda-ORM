@@ -11,69 +11,150 @@ public class RepositorioTarefaEmSql : IRepositorioTarefa
 
     public void Cadastrar(Tarefa tarefa)
     {
-        var sqlInserir =
+        var sqlInserirTarefa =
            @"INSERT INTO [TBTAREFA] 
-		    (
-                [ID],
-			    [TITULO],
-			    [DATACRIACAO],
-			    [DATACONCLUSAO],
-			    [PRIORIDADE],
-                [CONCLUIDA]
-		    )
-		    VALUES
-		    (
-                @ID,
-			    @TITULO,
-			    @DATACRIACAO,
-			    @DATACONCLUSAO,
-			    @PRIORIDADE,
-                @CONCLUIDA
-		    );";
+        (
+            [ID],
+            [TITULO],
+            [DATACRIACAO],
+            [DATACONCLUSAO],
+            [PRIORIDADE],
+            [CONCLUIDA]
+        )
+        VALUES
+        (
+            @ID,
+            @TITULO,
+            @DATACRIACAO,
+            @DATACONCLUSAO,
+            @PRIORIDADE,
+            @CONCLUIDA
+        );";
 
-        SqlConnection conexaoComBanco = new SqlConnection(connectionString);
+        using (SqlConnection conexao = new SqlConnection(connectionString))
+        {
+            conexao.Open();
 
-        SqlCommand comandoInsercao = new SqlCommand(sqlInserir, conexaoComBanco);
+            // 1. Inserir Tarefa
+            using (SqlCommand cmdTarefa = new SqlCommand(sqlInserirTarefa, conexao))
+            {
+                ConfigurarParametrosTarefa(tarefa, cmdTarefa);
+                cmdTarefa.ExecuteNonQuery();
+            }
 
-        tarefa.DataConclusao = SqlDateTime.MinValue.Value; // Define a data de conclusão como nula inicialmente
-        ConfigurarParametrosTarefa(tarefa, comandoInsercao);
+            // 2. Inserir Itens da Tarefa
+            foreach (var item in tarefa.Itens)
+            {
+                var sqlInserirItem =
+                    @"INSERT INTO [TBITEMTAREFA]
+                (
+                    [ID],
+                    [TITULO],
+                    [CONCLUIDO],
+                    [TAREFA_ID]
+                )
+                VALUES
+                (
+                    @ID,
+                    @TITULO,
+                    @CONCLUIDO,
+                    @TAREFA_ID
+                );";
 
-        conexaoComBanco.Open();
+                using (SqlCommand cmdItem = new SqlCommand(sqlInserirItem, conexao))
+                {
+                    ConfigurarParametrosItemTarefa(item, cmdItem);
+                    cmdItem.ExecuteScalar();
+                }
+            }
 
-        comandoInsercao.ExecuteScalar();
-
-        conexaoComBanco.Close();
+            conexao.Close();
+        }
     }
 
     public bool Editar(Guid idTarefa, Tarefa tarefaEditada)
     {
         var sqlEditar =
             @"UPDATE [TBTAREFA]	
-		    SET
-			    [TITULO] = @TITULO,
-			    [DATACRIACAO] = @DATACRIACAO,
-			    [DATACONCLUSAO] = @DATACONCLUSAO,
-			    [PRIORIDADE] = @PRIORIDADE,
-                [CONCLUIDA] = @CONCLUIDA
-		    WHERE
-			    [ID] = @ID";
-
-        SqlConnection conexaoComBanco = new SqlConnection(connectionString);
-
-        SqlCommand comandoEdicao = new SqlCommand(sqlEditar, conexaoComBanco);
+		SET
+			[TITULO] = @TITULO,
+			[DATACRIACAO] = @DATACRIACAO,
+			[DATACONCLUSAO] = @DATACONCLUSAO,
+			[PRIORIDADE] = @PRIORIDADE,
+            [CONCLUIDA] = @CONCLUIDA
+		WHERE
+			[ID] = @ID";
 
         tarefaEditada.Id = idTarefa;
 
-        ConfigurarParametrosTarefa(tarefaEditada, comandoEdicao);
+        if (!tarefaEditada.Concluida)
+            tarefaEditada.DataConclusao = SqlDateTime.MinValue.Value;
 
-        conexaoComBanco.Open();
+        using (SqlConnection conexao = new SqlConnection(connectionString))
+        {
+            conexao.Open();
 
-        var alteracoesRealizadas = comandoEdicao.ExecuteNonQuery();
+            // 1. Atualizar a tarefa principal
+            using (SqlCommand comandoEdicao = new SqlCommand(sqlEditar, conexao))
+            {
+                ConfigurarParametrosTarefa(tarefaEditada, comandoEdicao);
+                comandoEdicao.ExecuteNonQuery();
+            }
 
-        conexaoComBanco.Close();
+            // 2. Carregar itens atuais da tarefa no banco
+            var itensAtuais = new List<Item>();
+            var comandoCarregar = new SqlCommand(
+                @"SELECT [ID], [TITULO], [CONCLUIDO], [TAREFA_ID]
+              FROM [TBITEMTAREFA]
+              WHERE [TAREFA_ID] = @TAREFA_ID", conexao);
+            comandoCarregar.Parameters.AddWithValue("TAREFA_ID", idTarefa);
 
-        return alteracoesRealizadas > 0;
+            using (var leitor = comandoCarregar.ExecuteReader())
+            {
+                while (leitor.Read())
+                {
+                    var item = new Item
+                    {
+                        Id = Guid.Parse(leitor["ID"].ToString()!),
+                        Titulo = leitor["TITULO"].ToString()!,
+                        Concluido = leitor["CONCLUIDO"].ToString()!,
+                        Tarefa = tarefaEditada
+                    };
+                    itensAtuais.Add(item);
+                }
+            }
+
+            // 3. Atualizar ou adicionar novos itens
+            foreach (var itemEditado in tarefaEditada.Itens)
+            {
+                var itemExistente = itensAtuais.FirstOrDefault(i => i.Id == itemEditado.Id);
+
+                if (itemExistente != null)
+                {
+                    // Atualizar item existente
+                    AtualizarItem(itemEditado);
+                    itensAtuais.Remove(itemExistente); // Remove da lista para saber o que sobrou
+                }
+                else
+                {
+                    // Adicionar novo item
+                    itemEditado.Tarefa = tarefaEditada;
+                    AdicionarItem(itemEditado);
+                }
+            }
+
+            // 4. Remover os itens que sobraram (não estão mais na tarefa)
+            foreach (var itemRemovido in itensAtuais)
+            {
+                RemoverItem(itemRemovido);
+            }
+
+            conexao.Close();
+        }
+
+        return true;
     }
+
 
     public bool Excluir(Guid idTarefa)
     {
@@ -344,8 +425,10 @@ public class RepositorioTarefaEmSql : IRepositorioTarefa
     {
         DateTime dataConclusao = DateTime.MinValue;
 
-        if (!leitorTarefa["DATACONCLUSAO"].Equals(DBNull.Value) )
+        if (!leitorTarefa["DATACONCLUSAO"].Equals(DBNull.Value))
             dataConclusao = Convert.ToDateTime(leitorTarefa["DATACONCLUSAO"]);
+
+        bool concluida = Convert.ToBoolean(leitorTarefa["CONCLUIDA"]);
 
         var tarefa = new Tarefa
         {
@@ -354,7 +437,8 @@ public class RepositorioTarefaEmSql : IRepositorioTarefa
             DataCriacao = Convert.ToDateTime(leitorTarefa["DATACRIACAO"]),
             DataConclusao = dataConclusao,
             Prioridade = Convert.ToString(leitorTarefa["PRIORIDADE"]),
-            Concluida = Convert.ToBoolean(leitorTarefa["CONCLUIDA"])
+            Concluida = concluida,
+            StatusConcluida = concluida ? "Concluída" : "Pendente" // <-- ADICIONE ESTA LINHA
         };
 
         CarregarItensTarefa(tarefa);
@@ -393,8 +477,7 @@ public class RepositorioTarefaEmSql : IRepositorioTarefa
 
         SqlConnection conexaoComBanco = new SqlConnection(connectionString);
 
-        SqlCommand comandoSelecao =
-            new SqlCommand(sqlSelecionarItensTarefa, conexaoComBanco);
+        SqlCommand comandoSelecao = new SqlCommand(sqlSelecionarItensTarefa, conexaoComBanco);
 
         comandoSelecao.Parameters.AddWithValue("TAREFA_ID", tarefa.Id);
 

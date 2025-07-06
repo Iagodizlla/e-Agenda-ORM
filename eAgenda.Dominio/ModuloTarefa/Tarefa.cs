@@ -10,7 +10,7 @@ public class Tarefa : EntidadeBase<Tarefa>
     public string Prioridade { get; set; }
     public DateTime DataCriacao { get; set; }
     public DateTime DataConclusao { get; set; }
-    public string StatusConcluida { get; set; } = "Pendente"; // Default value
+    public string StatusConcluida{get; set; }
     public List<Item> Itens { get; set; }
 
     public double PercentualConcluido
@@ -18,19 +18,21 @@ public class Tarefa : EntidadeBase<Tarefa>
         get
         {
             if (Itens.Count == 0)
-                return default;
+                return 0;
 
-            int qtdConcluidos = 0;
+            int qtdConcluidos = Itens.Count(i => i.Concluido != "Pendente");
 
-            foreach (var item in Itens)
-            {
-                if (item.Concluido != "Pendente")
-                    qtdConcluidos++;
-            }
+            double percentualBase = (double)qtdConcluidos / Itens.Count * 100;
+            double percentualArredondado = Math.Round(percentualBase, 2);
 
-            decimal percentualBase = qtdConcluidos / (decimal)Itens.Count * 100;
+            percentualConcluida = percentualArredondado; // atualiza o campo privado
 
-            return (double)Math.Round(percentualBase, 2);
+            if (percentualArredondado == 100 && !Concluida)
+                Concluir();
+            else if (percentualArredondado < 100 && Concluida)
+                MarcarPendente();
+
+            return percentualArredondado;
         }
     }
 
@@ -63,18 +65,25 @@ public class Tarefa : EntidadeBase<Tarefa>
     {
         Id = Guid.NewGuid();
         DataCriacao = dataCriacao;
-        StatusConcluida = statusConcluida;
+        this.StatusConcluida = statusConcluida;
         DataConclusao = dataConclusao;
+    }
+    public void AtualizarPercentualConcluido()
+    {
+        // Apenas acessa o getter para disparar o cálculo e atualização do status
+        var dummy = PercentualConcluido;
     }
 
     public void Concluir()
     {
+        StatusConcluida = "Concluída";
         Concluida = true;
         DataConclusao = DateTime.Now;
     }
 
     public void MarcarPendente()
     {
+        StatusConcluida = "Pendente";
         Concluida = false;
         DataConclusao = DateTime.MinValue;
     }

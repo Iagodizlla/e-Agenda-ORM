@@ -24,7 +24,7 @@ public class Item
 
     public void Concluir()
     {
-        Concluido = "Concluída";
+        Concluido = "Concluído";
     }
 
     public void MarcarPendente()

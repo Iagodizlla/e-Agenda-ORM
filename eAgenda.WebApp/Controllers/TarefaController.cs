@@ -24,8 +24,6 @@ namespace eAgenda.WebApp.Controllers
         {
             List<Tarefa> registros;
 
-            List<Tarefa> tarefas = repositorioTarefa.SelecionarTarefas();
-
             switch (status)
             {
                 case "Pendente": registros = repositorioTarefa.SelecionarTarefasPendentes(); break;
@@ -74,9 +72,11 @@ namespace eAgenda.WebApp.Controllers
             if (!ModelState.IsValid)
                 return View(cadastrarVM);
 
-            var entidade = cadastrarVM.ParaEntidade();
+            var novaTarefa = cadastrarVM.ParaEntidade(); // ou a viewmodel que usar pra cadastrar
 
-            repositorioTarefa.Cadastrar(entidade);
+            novaTarefa.AtualizarPercentualConcluido(); // garante percentual e status atualizados
+
+            repositorioTarefa.Cadastrar(novaTarefa);
 
             return RedirectToAction(nameof(Index));
         }
@@ -101,8 +101,6 @@ namespace eAgenda.WebApp.Controllers
             );
 
             return View(editarVM);
-
-
         }
 
         [HttpPost("editar/{id:guid}")]
@@ -123,11 +121,12 @@ namespace eAgenda.WebApp.Controllers
 
             var entidadeEditada = editarVM.ParaEntidade();
 
+            entidadeEditada.AtualizarPercentualConcluido();
+
             repositorioTarefa.Editar(id, entidadeEditada);
 
             return RedirectToAction(nameof(Index));
         }
-
 
         [HttpGet("excluir/{id:guid}")]
         public IActionResult Excluir(Guid id)
