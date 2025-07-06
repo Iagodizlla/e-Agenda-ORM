@@ -1,23 +1,20 @@
 ﻿using eAgenda.Dominio.ModuloCompromisso;
 using eAgenda.Dominio.ModuloTarefa;
-using eAgenda.Infraestrutura.Compartilhado;
-using eAgenda.Infraestrutura.ModuloCompromisso;
-using eAgenda.Infraestrutura.ModuloTarefa;
+using eAgenda.Infraestrutura.SqlServer.ModuloCompromisso;
+using eAgenda.Infraestrutura.SqlServer.ModuloTarefa;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eAgenda.WebApp.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ContextoDeDados contextodados;
         private readonly IRepositorioCompromisso repositorioCompromisso;
         private readonly IRepositorioTarefa repositorioTarefa;
 
         public HomeController()
         {
-            contextodados = new ContextoDeDados(true);
-            repositorioCompromisso = new RepositorioCompromissoEmArquivo(contextodados);
-            repositorioTarefa = new RepositorioTarefaEmArquivo(contextodados);
+            repositorioCompromisso = new RepositorioCompromissoEmSql();
+            repositorioTarefa = new RepositorioTarefaEmSql();
         }
 
         [HttpGet]

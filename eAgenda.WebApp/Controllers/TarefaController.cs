@@ -1,6 +1,4 @@
 ﻿using eAgenda.Dominio.ModuloTarefa;
-using eAgenda.Infraestrutura.Compartilhado;
-using eAgenda.Infraestrutura.ModuloTarefa;
 using eAgenda.Infraestrutura.SqlServer.ModuloTarefa;
 using eAgenda.WebApp.Extensions;
 using eAgenda.WebApp.Models;
