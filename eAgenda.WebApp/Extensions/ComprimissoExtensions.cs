@@ -39,10 +39,10 @@ public static class CompromissoExtensions
         return new DetalhesCompromissoViewModel(
                 compromisso.Id,
                 compromisso.Assunto,
-                compromisso.DataOcorrencia,
+                compromisso.Data,
                 compromisso.HoraInicio,
                 compromisso.HoraTermino,
-                compromisso.TipoCompromisso,
+                compromisso.Tipo,
                 compromisso.Local,
                 compromisso.Link,
                 compromisso.Contato?.Nome

@@ -4,35 +4,24 @@ namespace eAgenda.Dominio.ModuloTarefa;
 
 public class Tarefa : EntidadeBase<Tarefa>
 {
-    private double percentualConcluida;
-
     public string Titulo { get; set; }
-    public string Prioridade { get; set; }
+    public PrioridadeTarefa Prioridade { get; set; }
     public DateTime DataCriacao { get; set; }
-    public DateTime DataConclusao { get; set; }
-    public string StatusConcluida{get; set; }
-    public List<Item> Itens { get; set; }
+    public DateTime? DataConclusao { get; set; }
+    public List<ItemTarefa> Itens { get; set; }
 
-    public double PercentualConcluido
+    public decimal PercentualConcluido
     {
         get
         {
             if (Itens.Count == 0)
-                return 0;
+                return default;
 
-            int qtdConcluidos = Itens.Count(i => i.Concluido != "Pendente");
+            int qtdConcluidos = Itens.Count(i => i.Concluido);
 
-            double percentualBase = (double)qtdConcluidos / Itens.Count * 100;
-            double percentualArredondado = Math.Round(percentualBase, 2);
+            decimal percentualBase = qtdConcluidos / (decimal)Itens.Count * 100;
 
-            percentualConcluida = percentualArredondado; // atualiza o campo privado
-
-            if (percentualArredondado == 100 && !Concluida)
-                Concluir();
-            else if (percentualArredondado < 100 && Concluida)
-                MarcarPendente();
-
-            return percentualArredondado;
+            return Math.Round(percentualBase, 2);
         }
     }
 
@@ -40,10 +29,10 @@ public class Tarefa : EntidadeBase<Tarefa>
 
     public Tarefa()
     {
-        Itens = new List<Item>();
+        Itens = new List<ItemTarefa>();
     }
 
-    public Tarefa(string titulo, string prioridade) : this()
+    public Tarefa(string titulo, PrioridadeTarefa prioridade) : this()
     {
         Id = Guid.NewGuid();
         Titulo = titulo;
@@ -52,50 +41,26 @@ public class Tarefa : EntidadeBase<Tarefa>
         DataCriacao = DateTime.Now;
     }
 
-    public Tarefa(string titulo, string prioridade, DateTime dataCriacao, double percentualConcluida, string statusConcluida, DateTime dataConclusao) : this(titulo, prioridade)
-    {
-        Id = Guid.NewGuid();
-        DataCriacao = dataCriacao;
-        this.percentualConcluida = percentualConcluida;
-        StatusConcluida = statusConcluida;
-        DataConclusao = dataConclusao;
-    }
-
-    public Tarefa(string titulo, string prioridade, DateTime dataCriacao, string statusConcluida, DateTime dataConclusao) : this(titulo, prioridade)
-    {
-        Id = Guid.NewGuid();
-        DataCriacao = dataCriacao;
-        this.StatusConcluida = statusConcluida;
-        DataConclusao = dataConclusao;
-    }
-    public void AtualizarPercentualConcluido()
-    {
-        // Apenas acessa o getter para disparar o cálculo e atualização do status
-        var dummy = PercentualConcluido;
-    }
-
     public void Concluir()
     {
-        StatusConcluida = "Concluída";
         Concluida = true;
         DataConclusao = DateTime.Now;
     }
 
     public void MarcarPendente()
     {
-        StatusConcluida = "Pendente";
         Concluida = false;
-        DataConclusao = DateTime.MinValue;
+        DataConclusao = null;
     }
 
-    public Item? ObterItem(Guid idItem)
+    public ItemTarefa? ObterItem(Guid idItem)
     {
         return Itens.Find(i => i.Id.Equals(idItem));
     }
 
-    public Item AdicionarItem(string titulo)
+    public ItemTarefa AdicionarItem(string titulo)
     {
-        var item = new Item(titulo, this);
+        var item = new ItemTarefa(titulo, this);
 
         Itens.Add(item);
 
@@ -104,14 +69,14 @@ public class Tarefa : EntidadeBase<Tarefa>
         return item;
     }
 
-    public Item AdicionarItem(Item item)
+    public ItemTarefa AdicionarItem(ItemTarefa item)
     {
         Itens.Add(item);
 
         return item;
     }
 
-    public bool RemoverItem(Item item)
+    public bool RemoverItem(ItemTarefa item)
     {
         Itens.Remove(item);
 
@@ -120,12 +85,12 @@ public class Tarefa : EntidadeBase<Tarefa>
         return true;
     }
 
-    public void ConcluirItem(Item item)
+    public void ConcluirItem(ItemTarefa item)
     {
         item.Concluir();
     }
 
-    public void MarcarItemPendente(Item item)
+    public void MarcarItemPendente(ItemTarefa item)
     {
         item.MarcarPendente();
 

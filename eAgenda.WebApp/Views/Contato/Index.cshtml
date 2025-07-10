@@ -1,4 +1,6 @@
-﻿@{
+﻿@model VisualizarContatosViewModel
+
+@{
     Layout = "_Layout";
     ViewBag.Titulo = "Visualização de Contatos";
 }
@@ -18,13 +20,20 @@
         <div class="col-12 col-md-3">
             <div class="card border-0">
                 <div class="card-body">
-                    <h5 class="card-title">Contato: @item.Nome</h5>
-                    <p class="card-text"><span class="fw-semibold">Email:</span> @item.Email</p>
-                    <p class="card-text"><span class="fw-semibold">Telefone:</span> @item.Telefone</p>
-                    <p class="card-text"><span class="fw-semibold">Cargo:</span> @item.Cargo</p>
-                    <p class="card-text"><span class="fw-semibold">Empresa:</span> @item.Empresa</p>
+                    <h5 class="card-title">@item.Nome</h5>
+                    <p class="card-text mb-0"><span class="fw-semibold">Telefone:</span> @item.Telefone</p>
+                    <p class="card-text mb-0"><span class="fw-semibold">Email:</span> @item.Email</p>
 
-                    <span class="d-flex justify-content-end mt-4 gap-1">
+                    @if (!string.IsNullOrWhiteSpace(item.Empresa))
+                    {
+                        <p class="card-text mb-0"><span class="fw-semibold">Empresa:</span> @item.Empresa</p>
+                        <p class="card-text mb-0"><span class="fw-semibold">Cargo:</span> @item.Cargo</p>
+                    }
+
+                    <span class="d-flex gap-1 justify-content-end mt-auto">
+                        <a href="/contatos/detalhes/@item.Id" class="btn btn-secondary rounded-circle opcao-card">
+                            <i class="bi bi-search"></i>
+                        </a>
                         <a href="/contatos/editar/@item.Id" class="btn btn-primary rounded-circle opcao-card">
                             <i class="bi bi-pencil-square"></i>
                         </a>

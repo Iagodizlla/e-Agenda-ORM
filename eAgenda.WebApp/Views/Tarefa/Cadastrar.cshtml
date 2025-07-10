@@ -1,4 +1,5 @@
-﻿@using static eAgenda.WebApp.Models.FormularioTarefaViewModel
+﻿﻿@using eAgenda.Dominio.ModuloTarefa
+
 @model CadastrarTarefaViewModel
 
 @{
@@ -11,60 +12,28 @@
     <div class="col-md-8">
         <div class="card rounded-4 border-0">
             <div class="card-body p-md-5">
-                <form asp-action="Cadastrar" method="post">
-                    @if (!ViewData.ModelState.IsValid)
+                <form asp-action="Cadastrar">
+                    <h3>Cadastro de Tarefa</h3>
+
+                    @if (ViewData.ModelState["CadastroUnico"]?.Errors.Count > 0)
                     {
-                        <div class="alert alert-danger">
-                            @Html.ValidationSummary()
+                        <div class="alert alert-danger alert-dismissible fade show my-3" role="alert">
+                            @ViewData.ModelState["CadastroUnico"]!.Errors.First().ErrorMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     }
 
-                    <h3>Formulário de Cadastro</h3>
-
-                    <div class="form-group d-grid mt-3 gap-2">
-                        <label asp-for="Titulo" class="control-label fs-5">Titulo:</label>
-                        <input asp-for="Titulo" class="form-control" value="@Model.Titulo" />
+                    <div class="form-group d-grid gap-2 mt-3">
+                        <label asp-for="Titulo" class="control-label fs-5">Título:</label>
+                        <input asp-for="Titulo" class="form-control" />
                         <span asp-validation-for="Titulo" class="text-danger"></span>
                     </div>
-
-                    <div class="form-group d-grid mt-3 gap-2">
+                    <div class="form-group d-grid gap-2 mt-3">
                         <label asp-for="Prioridade" class="control-label fs-5">Prioridade:</label>
-                        <select asp-for="Prioridade" class="form-control">
-                            <option value="Baixa">Baixa</option>
-                            <option value="Média">Média</option>
-                            <option value="Alta">Alta</option>
-                        </select>
+                        <select asp-for="Prioridade" asp-items="@Html.GetEnumSelectList<PrioridadeTarefa>()" class="form-select"></select>
                         <span asp-validation-for="Prioridade" class="text-danger"></span>
                     </div>
-
-                    <div class="form-group d-grid mt-3 gap-2">
-                        <label asp-for="DataCriacao" class="control-label fs-5">Data de Criacao:</label>
-                        <input asp-for="DataCriacao" class="form-control" type="date" />
-                        <span asp-validation-for="DataCriacao" class="text-danger"></span>
-                    </div>
-
-                    <hr />
-                    <div class="form-group d-grid mt-3 gap-2">
-                        <label class="control-label fs-5">Adicionar Itens da Tarefa:</label>
-
-                        <div id="itens-container" class="d-flex flex-column gap-3">
-                            <div class="item-form d-flex gap-2">
-                                <input type="text" name="TitulosItens" class="form-control" placeholder="Título do item" />
-                                <span asp-validation-for="TitulosItens" class="text-danger"></span>
-                                <select name="StatusConclusoesItens" class="form-select" style="max-width: 150px;">
-                                    <option value="Pendente">Pendente</option>
-                                    <option value="Concluído">Concluído</option>
-                                </select>
-                                <button type="button" class="btn btn-danger btn-remover-item"><i class="bi bi-trash"></i></button>
-                            </div>
-                        </div>
-
-                        <button type="button" id="btn-adicionar-item" class="btn btn-outline-secondary mt-2 w-auto">
-                            Adicionar outro item
-                        </button>
-                    </div>
-
-                    <div class="form-group d-flex align-items-center justify-content-end mt-5 gap-3">
+                    <div class="form-group d-flex align-items-center justify-content-end gap-3 mt-5">
                         <a href="/tarefas">Voltar para a listagem</a>
                         <button type="submit" class="btn btn-primary rounded-3 px-5">Confirmar</button>
                     </div>
@@ -76,31 +45,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-
-    <script>
-        document.getElementById("btn-adicionar-item").addEventListener("click", function () {
-            const container = document.getElementById("itens-container");
-
-            const itemForm = document.createElement("div");
-            itemForm.className = "item-form d-flex gap-2";
-
-            itemForm.innerHTML = `
-                <input type="text" name="TitulosItens" class="form-control" placeholder="Título do item" required />
-                <select name="StatusConclusoesItens" class="form-select" style="max-width: 150px;">
-                    <option value="Pendente">Pendente</option>
-                    <option value="Concluído">Concluído</option>
-                </select>
-                <button type="button" class="btn btn-danger btn-remover-item"><i class="bi bi-trash"></i></button>
-            `;
-
-            container.appendChild(itemForm);
-        });
-
-        // Remover item
-        document.addEventListener("click", function (e) {
-            if (e.target.classList.contains("btn-remover-item")) {
-                e.target.parentElement.remove();
-            }
-        });
-    </script>
 }

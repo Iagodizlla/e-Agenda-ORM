@@ -2,7 +2,6 @@
 using eAgenda.WebApp.Extensions;
 using eAgenda.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
-using static eAgenda.WebApp.Models.FormularioCategoriaViewModel;
 
 namespace eAgenda.WebApp.Controllers;
 

@@ -23,7 +23,7 @@ public class FormularioCompromissoViewModel
     public TimeSpan HoraTermino { get; set; }
 
     [Required(ErrorMessage = "O campo \"Tipo\" é obrigatório.")]
-    public TipoCompromissoEnum Tipo { get; set; }
+    public TipoCompromisso Tipo { get; set; }
 
     public string? Local { get; set; }
     public string? Link { get; set; }
@@ -65,7 +65,7 @@ public class EditarCompromissoViewModel : FormularioCompromissoViewModel
         DateTime data,
         TimeSpan horaInicio,
         TimeSpan horaTermino,
-        TipoCompromissoEnum tipo,
+        TipoCompromisso tipo,
         string? local,
         string? link,
         Guid? contatoId,
@@ -123,7 +123,7 @@ public class DetalhesCompromissoViewModel
     public DateTime Data { get; set; }
     public TimeSpan HoraInicio { get; set; }
     public TimeSpan HoraTermino { get; set; }
-    public TipoCompromissoEnum Tipo { get; set; }
+    public TipoCompromisso Tipo { get; set; }
     public string? Local { get; set; }
     public string? Link { get; set; }
     public string? Contato { get; set; }
@@ -134,7 +134,7 @@ public class DetalhesCompromissoViewModel
         DateTime data,
         TimeSpan horaInicio,
         TimeSpan horaTermino,
-        TipoCompromissoEnum tipo,
+        TipoCompromisso tipo,
         string? local,
         string? link,
         string? contato

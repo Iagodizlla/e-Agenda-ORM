@@ -1,4 +1,5 @@
-﻿@using static eAgenda.WebApp.Models.FormularioTarefaViewModel
+﻿﻿@using eAgenda.Dominio.ModuloTarefa
+
 @model EditarTarefaViewModel
 
 @{
@@ -11,58 +12,28 @@
     <div class="col-md-8">
         <div class="card rounded-4 border-0">
             <div class="card-body p-md-5">
-                <form asp-action="Editar" asp-route-id="@Model.Id" method="post">
-                    @if (!ViewData.ModelState.IsValid)
+                <form asp-action="Editar" asp-route-id="@Model.Id">
+                    <h3>Edição de Tarefa</h3>
+
+                    @if (ViewData.ModelState["CadastroUnico"]?.Errors.Count > 0)
                     {
-                        <div class="alert alert-danger">
-                            @Html.ValidationSummary()
+                        <div class="alert alert-danger alert-dismissible fade show my-3" role="alert">
+                            @ViewData.ModelState["CadastroUnico"]!.Errors.First().ErrorMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     }
 
-                    <h3>Formulário de Edição</h3>
-
-                    <div class="form-group d-grid mt-3 gap-2">
-                        <label asp-for="Titulo" class="control-label fs-5">Titulo:</label>
-                        <input asp-for="Titulo" class="form-control" value="@Model.Titulo" />
+                    <div class="form-group d-grid gap-2 mt-3">
+                        <label asp-for="Titulo" class="control-label fs-5">Título:</label>
+                        <input asp-for="Titulo" class="form-control" />
                         <span asp-validation-for="Titulo" class="text-danger"></span>
                     </div>
-
-                    <div class="form-group d-grid mt-3 gap-2">
+                    <div class="form-group d-grid gap-2 mt-3">
                         <label asp-for="Prioridade" class="control-label fs-5">Prioridade:</label>
-                        <select asp-for="Prioridade" class="form-control">
-                            <option value="Baixa" selected="@("Baixa" == Model.Prioridade)">Baixa</option>
-                            <option value="Média" selected="@("Média" == Model.Prioridade)">Média</option>
-                            <option value="Alta" selected="@("Alta" == Model.Prioridade)">Alta</option>
-                        </select>
+                        <select asp-for="Prioridade" asp-items="@Html.GetEnumSelectList<PrioridadeTarefa>()" class="form-select"></select>
                         <span asp-validation-for="Prioridade" class="text-danger"></span>
                     </div>
-
-                    <div class="form-group d-grid mt-3 gap-2">
-                        <label asp-for="DataCriacao" class="control-label fs-5">Data de Criacao:</label>
-                        <input asp-for="DataCriacao" class="form-control" type="date" value="@Model.DataCriacao.ToString("yyyy-MM-dd")" />
-                        <span asp-validation-for="DataCriacao" class="text-danger"></span>
-                    </div>
-
-                    <div id="itens-container">
-                        @for (int i = 0; i < Model.TitulosItens.Count; i++)
-                        {
-                            <div class="item-form d-flex gap-2 mb-2">
-                                <input type="text" name="TitulosItens" class="form-control" value="@Model.TitulosItens[i]" placeholder="Título do item" required />
-                                <select name="StatusConclusoesItens" class="form-control">
-                                    <option value="Pendente" selected="@(Model.StatusConclusoesItens[i] == "Pendente")">Pendente</option>
-                                    <option value="Concluído" selected="@(Model.StatusConclusoesItens[i] == "Concluído")">Concluído</option>
-                                </select>
-                                <button type="button" class="btn btn-danger btn-remover-item">Remover</button>
-                            </div>
-                        }
-                    </div>
-
-                    <div class="form-group mt-3">
-                        <button type="button" id="btnAdicionarItem" class="btn btn-secondary">Adicionar Item</button>
-                    </div>
-
-
-                    <div class="form-group d-flex align-items-center justify-content-end gap-3 mt-3">
+                    <div class="form-group d-flex align-items-center justify-content-end gap-3 mt-5">
                         <a href="/tarefas">Voltar para a listagem</a>
                         <button type="submit" class="btn btn-primary rounded-3 px-5">Confirmar</button>
                     </div>
@@ -74,57 +45,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        document.getElementById('btnAdicionarItem').addEventListener('click', function () {
-            var container = document.getElementById('itens-container');
-
-            var divItem = document.createElement('div');
-            divItem.className = 'item-form d-flex gap-2 mb-2';
-
-            var inputTitulo = document.createElement('input');
-            inputTitulo.type = 'text';
-            inputTitulo.name = 'TitulosItens';
-            inputTitulo.className = 'form-control';
-            inputTitulo.placeholder = 'Título do item';
-            inputTitulo.required = true;
-
-            var selectStatus = document.createElement('select');
-            selectStatus.name = 'StatusConclusoesItens';
-            selectStatus.className = 'form-control';
-
-            var optionPendente = document.createElement('option');
-            optionPendente.value = 'Pendente';
-            optionPendente.text = 'Pendente';
-
-            var optionConcluido = document.createElement('option');
-            optionConcluido.value = 'Concluído';
-            optionConcluido.text = 'Concluído';
-
-            selectStatus.appendChild(optionPendente);
-            selectStatus.appendChild(optionConcluido);
-
-            var btnRemover = document.createElement('button');
-            btnRemover.type = 'button';
-            btnRemover.className = 'btn btn-danger btn-remover-item';
-            btnRemover.textContent = 'Remover';
-
-            btnRemover.addEventListener('click', function () {
-                container.removeChild(divItem);
-            });
-
-            divItem.appendChild(inputTitulo);
-            divItem.appendChild(selectStatus);
-            divItem.appendChild(btnRemover);
-
-            container.appendChild(divItem);
-        });
-
-        // Remove itens existentes se clicar no botão remover
-        document.querySelectorAll('.btn-remover-item').forEach(function (btn) {
-            btn.addEventListener('click', function (e) {
-                var itemDiv = e.target.parentNode;
-                itemDiv.parentNode.removeChild(itemDiv);
-            });
-        });
-    </script>
 }

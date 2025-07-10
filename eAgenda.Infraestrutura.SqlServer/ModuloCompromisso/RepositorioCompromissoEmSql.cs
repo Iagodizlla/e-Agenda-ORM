@@ -1,203 +1,123 @@
 ﻿using eAgenda.Dominio.ModuloCompromisso;
 using eAgenda.Dominio.ModuloContato;
-using Microsoft.Data.SqlClient;
+using eAgenda.Infraestrutura.SqlServer.Compartilhado;
+using System.Data;
 
 namespace eAgenda.Infraestrutura.SqlServer.ModuloCompromisso;
 
-public class RepositorioCompromissoEmSql : IRepositorioCompromisso
+public class RepositorioCompromissoEmSql : RepositorioBaseEmSql<Compromisso>, IRepositorioCompromisso
 {
-    private readonly string connectionString =
-        "Data Source=(LocalDB)\\MSSQLLocalDB;Initial Catalog=eAgendaDb;Integrated Security=True";
-
-    public void CadastrarRegistro(Compromisso novoRegistro)
+    public RepositorioCompromissoEmSql(IDbConnection conexaoComBanco)
+        : base(conexaoComBanco)
     {
-        var sqlInserir =
-            @"INSERT INTO [TBCOMPROMISSO]
-            (
-                [ID],
-                [ASSUNTO],
-                [DATA], 
-                [HORAINICIO],                    
-                [HORATERMINO],
-                [TIPO],  
-                [LOCAL],       
-                [LINK],            
-                [CONTATO_ID]
-            )
-            VALUES
-            (
-                @ID,
-                @ASSUNTO,
-                @DATA,
-                @HORAINICIO,
-                @HORATERMINO,
-                @TIPO,
-                @LOCAL,
-                @LINK,
-                @CONTATO_ID
-            );";
-
-        SqlConnection conexaoComBanco = new SqlConnection(connectionString);
-
-        SqlCommand comandoInsercao = new SqlCommand(sqlInserir, conexaoComBanco);
-
-        ConfigurarParametrosCompromisso(novoRegistro, comandoInsercao);
-
-        conexaoComBanco.Open();
-
-        comandoInsercao.ExecuteNonQuery();
-
-        conexaoComBanco.Close();
     }
 
-    public bool EditarRegistro(Guid idRegistro, Compromisso registroEditado)
+    protected override string SqlInserir => @"
+        INSERT INTO [TBCOMPROMISSO]
+        (
+            [ID],
+            [ASSUNTO],
+            [DATA], 
+            [HORAINICIO],                    
+            [HORATERMINO],
+            [TIPO],  
+            [LOCAL],       
+            [LINK],            
+            [CONTATO_ID]
+        )
+        VALUES
+        (
+            @ID,
+            @ASSUNTO,
+            @DATA,
+            @HORAINICIO,
+            @HORATERMINO,
+            @TIPO,
+            @LOCAL,
+            @LINK,
+            @CONTATO_ID
+        );";
+
+    protected override string SqlEditar => @"
+        UPDATE [TBCOMPROMISSO]
+        SET 
+            [ASSUNTO] = @ASSUNTO,
+            [DATA] = @DATA, 
+            [HORAINICIO] = @HORAINICIO, 
+            [HORATERMINO] = @HORATERMINO,
+            [TIPO] = @TIPO,
+            [LOCAL] = @LOCAL, 
+            [LINK] = @LINK,
+            [CONTATO_ID] = @CONTATO_ID
+        WHERE 
+            [ID] = @ID";
+
+    protected override string SqlExcluir => @"
+        DELETE FROM [TBCOMPROMISSO]
+        WHERE [ID] = @ID";
+
+    protected override string SqlSelecionarPorId => @"
+        SELECT
+            CP.[ID],
+            CP.[ASSUNTO],
+            CP.[DATA],
+            CP.[HORAINICIO],
+            CP.[HORATERMINO],
+            CP.[TIPO],
+            CP.[LOCAL],
+            CP.[LINK],
+            CP.[CONTATO_ID],
+            CT.[ID] AS CONTATO_ID_COMPLETO,
+            CT.[NOME],
+            CT.[EMAIL],
+            CT.[TELEFONE],
+            CT.[CARGO],
+            CT.[EMPRESA]
+        FROM
+            [TBCOMPROMISSO] AS CP LEFT JOIN
+            [TBCONTATO] AS CT
+        ON
+            CT.ID = CP.CONTATO_ID
+        WHERE
+            CP.[ID] = @ID;";
+
+    protected override string SqlSelecionarTodos => @"
+        SELECT
+            CP.[ID],
+            CP.[ASSUNTO],
+            CP.[DATA],
+            CP.[HORAINICIO],
+            CP.[HORATERMINO],
+            CP.[TIPO],
+            CP.[LOCAL],
+            CP.[LINK],
+            CP.[CONTATO_ID],
+            CT.[ID] AS CONTATO_ID_COMPLETO,
+            CT.[NOME],
+            CT.[EMAIL],
+            CT.[TELEFONE],
+            CT.[CARGO],
+            CT.[EMPRESA]
+        FROM
+            [TBCOMPROMISSO] AS CP LEFT JOIN
+            [TBCONTATO] AS CT
+        ON
+            CT.ID = CP.CONTATO_ID;";
+
+    protected override void ConfigurarParametrosRegistro(Compromisso compromisso, IDbCommand comando)
     {
-        var sqlEditar =
-            @"UPDATE [TBCOMPROMISSO]
-            SET 
-                [ASSUNTO] = @ASSUNTO,
-                [DATA] = @DATA, 
-                [HORAINICIO] = @HORAINICIO, 
-                [HORATERMINO] = @HORATERMINO,
-                [TIPO] = @TIPO,
-                [LOCAL] = @LOCAL, 
-                [LINK] = @LINK,
-                [CONTATO_ID] = @CONTATO_ID
-            WHERE 
-                [ID] = @ID";
-
-        SqlConnection conexaoComBanco = new SqlConnection(connectionString);
-
-        SqlCommand comandoEdicao = new SqlCommand(sqlEditar, conexaoComBanco);
-
-        registroEditado.Id = idRegistro;
-
-        ConfigurarParametrosCompromisso(registroEditado, comandoEdicao);
-
-        conexaoComBanco.Open();
-
-        var numeroRegistrosAfetados = comandoEdicao.ExecuteNonQuery();
-
-        conexaoComBanco.Close();
-
-        return numeroRegistrosAfetados > 0;
+        comando.AdicionarParametro("ID", compromisso.Id);
+        comando.AdicionarParametro("ASSUNTO", compromisso.Assunto);
+        comando.AdicionarParametro("DATA", compromisso.Data);
+        comando.AdicionarParametro("HORAINICIO", compromisso.HoraInicio.Ticks);
+        comando.AdicionarParametro("HORATERMINO", compromisso.HoraTermino.Ticks);
+        comando.AdicionarParametro("TIPO", (int)compromisso.Tipo);
+        comando.AdicionarParametro("LOCAL", compromisso.Local ?? (object)DBNull.Value);
+        comando.AdicionarParametro("LINK", compromisso.Link ?? (object)DBNull.Value);
+        comando.AdicionarParametro("CONTATO_ID", compromisso.Contato?.Id ?? (object)DBNull.Value);
     }
 
-    public bool ExcluirRegistro(Guid idRegistro)
-    {
-        var sqlExcluir =
-            @"DELETE FROM [TBCOMPROMISSO]
-		    WHERE
-			    [ID] = @ID";
-
-        SqlConnection conexaoComBanco = new SqlConnection(connectionString);
-
-        SqlCommand comandoExclusao = new SqlCommand(sqlExcluir, conexaoComBanco);
-
-        comandoExclusao.Parameters.AddWithValue("ID", idRegistro);
-
-        conexaoComBanco.Open();
-
-        var numeroRegistrosExcluidos = comandoExclusao.ExecuteNonQuery();
-
-        conexaoComBanco.Close();
-
-        return numeroRegistrosExcluidos > 0;
-    }
-
-    public Compromisso? SelecionarRegistroPorId(Guid idRegistro)
-    {
-        var sqlSelecionarPorId =
-            @"SELECT
-                CP.[ID],
-                CP.[ASSUNTO],
-                CP.[DATA],
-                CP.[HORAINICIO],
-                CP.[HORATERMINO],
-                CP.[TIPO],
-                CP.[LOCAL],
-                CP.[LINK],
-                CP.[CONTATO_ID],
-                CT.[NOME],
-                CT.[EMAIL],
-                CT.[TELEFONE],
-                CT.[CARGO],
-                CT.[EMPRESA]
-            FROM
-                [TBCompromisso] AS CP LEFT JOIN
-                [TBContato] AS CT
-            ON
-                CT.ID = CP.CONTATO_ID
-            WHERE
-                CP.[ID] = @ID;";
-
-        SqlConnection conexaoComBanco = new SqlConnection(connectionString);
-
-        SqlCommand comandoSelecao = new SqlCommand(sqlSelecionarPorId, conexaoComBanco);
-
-        comandoSelecao.Parameters.AddWithValue("ID", idRegistro);
-
-        conexaoComBanco.Open();
-
-        SqlDataReader leitor = comandoSelecao.ExecuteReader();
-
-        Compromisso? compromisso = null;
-
-        if (leitor.Read())
-            compromisso = ConverterParaCompromisso(leitor);
-
-        conexaoComBanco.Close();
-
-        return compromisso;
-    }
-
-    public List<Compromisso> SelecionarRegistros()
-    {
-        var sqlSelecionarTodos =
-           @"SELECT
-                CP.[ID],
-                CP.[ASSUNTO],
-                CP.[DATA],
-                CP.[HORAINICIO],
-                CP.[HORATERMINO],
-                CP.[TIPO],
-                CP.[LOCAL],
-                CP.[LINK],
-                CP.[CONTATO_ID],
-                CT.[NOME],
-                CT.[EMAIL],
-                CT.[TELEFONE],
-                CT.[CARGO],
-                CT.[EMPRESA]
-            FROM
-                [TBCompromisso] AS CP LEFT JOIN
-                [TBContato] AS CT
-            ON
-                CT.ID = CP.CONTATO_ID;";
-
-        SqlConnection conexaoComBanco = new SqlConnection(connectionString);
-
-        SqlCommand comandoSelecao = new SqlCommand(sqlSelecionarTodos, conexaoComBanco);
-
-        conexaoComBanco.Open();
-
-        SqlDataReader leitorCompromisso = comandoSelecao.ExecuteReader();
-
-        var compromissos = new List<Compromisso>();
-
-        while (leitorCompromisso.Read())
-        {
-            var compromisso = ConverterParaCompromisso(leitorCompromisso);
-
-            compromissos.Add(compromisso);
-        }
-
-        conexaoComBanco.Close();
-
-        return compromissos;
-    }
-
-    private Compromisso ConverterParaCompromisso(SqlDataReader leitorCompromisso)
+    protected override Compromisso ConverterParaRegistro(IDataReader leitorCompromisso)
     {
         var horaInicio = TimeSpan.FromTicks(Convert.ToInt64(leitorCompromisso["HORAINICIO"]));
         var horaTermino = TimeSpan.FromTicks(Convert.ToInt64(leitorCompromisso["HORATERMINO"]));
@@ -212,9 +132,9 @@ public class RepositorioCompromissoEmSql : IRepositorioCompromisso
             Convert.ToDateTime(leitorCompromisso["DATA"]),
             horaInicio,
             horaTermino,
-            (TipoCompromissoEnum)Convert.ToInt32(leitorCompromisso["TIPO"]),
-            Convert.ToString(leitorCompromisso["LOCAL"])!,
-            Convert.ToString(leitorCompromisso["LINK"])!,
+            (TipoCompromisso)Convert.ToInt32(leitorCompromisso["TIPO"]),
+            Convert.ToString(leitorCompromisso["LOCAL"]),
+            Convert.ToString(leitorCompromisso["LINK"]),
             contato
         );
 
@@ -223,7 +143,7 @@ public class RepositorioCompromissoEmSql : IRepositorioCompromisso
         return compromisso;
     }
 
-    private Contato ConverterParaContato(SqlDataReader leitor)
+    private Contato ConverterParaContato(IDataReader leitor)
     {
         var contato = new Contato(
             Convert.ToString(leitor["NOME"])!,
@@ -236,20 +156,5 @@ public class RepositorioCompromissoEmSql : IRepositorioCompromisso
         contato.Id = Guid.Parse(leitor["ID"].ToString()!);
 
         return contato;
-    }
-
-    private void ConfigurarParametrosCompromisso(Compromisso compromisso, SqlCommand comando)
-    {
-        comando.Parameters.AddWithValue("ID", compromisso.Id);
-        comando.Parameters.AddWithValue("ASSUNTO", compromisso.Assunto);
-        comando.Parameters.AddWithValue("DATA", compromisso.DataOcorrencia);
-        comando.Parameters.AddWithValue("HORAINICIO", compromisso.HoraInicio.Ticks);
-        comando.Parameters.AddWithValue("HORATERMINO", compromisso.HoraTermino.Ticks);
-
-        comando.Parameters.AddWithValue("TIPO", (int)compromisso.TipoCompromisso);
-        comando.Parameters.AddWithValue("LOCAL", compromisso.Local ?? (object)DBNull.Value);
-        comando.Parameters.AddWithValue("LINK", compromisso.Link ?? (object)DBNull.Value);
-
-        comando.Parameters.AddWithValue("CONTATO_ID", compromisso.Contato?.Id ?? (object)DBNull.Value);
     }
 }

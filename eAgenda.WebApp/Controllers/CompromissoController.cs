@@ -80,10 +80,10 @@ public class CompromissoController : Controller
         var editarVM = new EditarCompromissoViewModel(
             id,
             registroSelecionado.Assunto,
-            registroSelecionado.DataOcorrencia,
+            registroSelecionado.Data,
             registroSelecionado.HoraInicio,
             registroSelecionado.HoraTermino,
-            registroSelecionado.TipoCompromisso,
+            registroSelecionado.Tipo,
             registroSelecionado.Local,
             registroSelecionado.Link,
             registroSelecionado.Contato?.Id,

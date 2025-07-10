@@ -1,109 +1,42 @@
 ﻿@{
     Layout = "_Layout";
-    ViewBag.Titulo = "";
-    var itensAgenda = ViewBag.ItensDaAgenda as IEnumerable<dynamic>;
+    ViewBag.Titulo = "Página Inicial";
 }
 
 <hr />
-<div class="d-flex gap-lg-5 flex-wrap gap-2">
-    <div class="col order-lg-0 py-lg-5 order-1">
+<div class="d-flex flex-wrap gap-2 gap-lg-5">
+    <div class="col order-1 order-lg-0 py-3 py-lg-5">
+        <h2 class="text-primary fs-1 fw-bold">Sua rotina organizada em um só lugar!</h2>
 
-        <div class="d-grid d-lg-flex flex-wrap gap-2">
-            <a href="/contatos" class="btn btn-outline-primary fw-semibold rounded-3 px-5 d-none d-sm-inline">contatos</a>
-            <a href="/compromissos" class="btn btn-outline-primary fw-semibold rounded-3 px-5 d-none d-sm-inline">compromissos</a>
-            <a href="/categorias" class="btn btn-outline-primary fw-semibold rounded-3 px-5 d-none d-sm-inline">categorias</a>
-            <a href="/despesas" class="btn btn-outline-primary fw-semibold rounded-3 px-5 d-none d-sm-inline">despesas</a>
-            <a href="/tarefas" class="btn btn-outline-primary fw-semibold rounded-3 px-5 d-none d-sm-inline">tarefas</a>
+        <p class="fs-4 mt-3">
+            O eAgenda é o app ideal para quem busca praticidade e controle no dia a dia. Com recursos poderosos, o eAgenda permite que você gerencie seus contatos, compromissos, despesas, categorias de despesas e tarefas de forma simples e eficiente.
+        </p>
 
-            <!-- Versão menor dos botões para telas pequenas -->
-            <a href="/contatos" class="btn btn-outline-primary fw-semibold rounded-3 btn-sm px-3 d-sm-none">contatos</a>
-            <a href="/compromissos" class="btn btn-outline-primary fw-semibold rounded-3 btn-sm px-3 d-sm-none">compromissos</a>
-            <a href="/categorias" class="btn btn-outline-primary fw-semibold rounded-3 btn-sm px-3 d-sm-none">categorias</a>
-            <a href="/despesas" class="btn btn-outline-primary fw-semibold rounded-3 btn-sm px-3 d-sm-none">despesas</a>
-            <a href="/tarefas" class="btn btn-outline-primary fw-semibold rounded-3 btn-sm px-3 d-sm-none">tarefas</a>
-        </div>
+        <p class="fs-4 mt-3">
+            Quer você esteja gerenciando sua vida pessoal ou profissional, o eAgenda é o assistente digital que você precisa para manter tudo sob controle.
+        </p>
 
-        <hr />
+        <p class="fs-4 mt-4 text-secondary-emphasis">Clique em uma das opções abaixo para prosseguir:</p>
 
-        <div class="mb-3 d-flex align-items-end gap-2">
-            <div class="flex-grow-1">
-                <label for="filtroData" class="form-label fw-semibold">Filtrar por data:</label>
-                <input type="date" id="filtroData" class="form-control w-70"/>
+        <div class="d-flex flex-wrap gap-2">
+            <div class="col col-lg-3">
+                <a href="/contatos" class="btn btn-outline-primary fw-semibold rounded-3 w-100">Contatos</a>
             </div>
-            <button type="button" id="btnMostrarTodos" class="btn btn-primary btn-sm py-2 w-30" >Mostrar todos</button>
+            <div class="col col-lg-3">
+                <a href="/compromissos" class="btn btn-outline-primary fw-semibold rounded-3 w-100">Compromissos</a>
+            </div>
+            <div class="col col-lg-3">
+                <a href="/categorias" class="btn btn-outline-primary fw-semibold rounded-3 w-100">Categorias</a>
+            </div>
+            <div class="col col-lg-3">
+                <a href="/despesas" class="btn btn-outline-primary fw-semibold rounded-3 w-100">Despesas</a>
+            </div>
+            <div class="col col-lg-3">
+                <a href="/tarefas" class="btn btn-outline-primary fw-semibold rounded-3 w-100">Tarefas</a>
+            </div>
         </div>
-
-        <h5 id="tituloFiltrados" style="display:none;">Compromissos e Tarefas na data selecionada</h5>
-        <ul class="list-group mt-3" id="listaFiltrada" style="display:none;">
-            <li class="list-group-item" id="msgNenhumFiltrado" style="display:none;">Nenhum compromisso ou tarefa encontrada para a data selecionada.</li>
-        </ul>
-
-        <h5 id="tituloTodos">Todos os Compromissos e Tarefas</h5>
-        <ul class="list-group mt-3" id="listaAgenda">
-        @if (itensAgenda != null && itensAgenda.Any())
-        {
-            foreach (var item in itensAgenda)
-            {
-                <li class="list-group-item d-flex justify-content-between align-items-center"
-                    data-data="@item.Data.ToString("yyyy-MM-dd")">
-                    <span>
-                        <strong>@item.Tipo:</strong> @item.Titulo
-                    </span>
-                    <span class="badge bg-primary rounded-pill">
-                        @item.Data.ToString("dd/MM/yyyy")
-                    </span>
-                </li>
-            }
-        }
-            <li class="list-group-item" id="msgNenhum" style="display:none;">Nenhum compromisso ou tarefa encontrada.</li>
-        </ul>
-
-@section Scripts {
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const filtroData = document.getElementById("filtroData");
-    const btnMostrarTodos = document.getElementById("btnMostrarTodos")
-    const listaTodos = document.getElementById("listaAgenda");
-    const listaFiltrada = document.getElementById("listaFiltrada");
-    const itensTodos = listaTodos.querySelectorAll("li[data-data]");
-    const tituloFiltrados = document.getElementById("tituloFiltrados");
-    const tituloTodos = document.getElementById("tituloTodos");
-    const msgNenhumFiltrado = document.getElementById("msgNenhumFiltrado");
-
-filtroData.addEventListener("change", function () {
-    const dataSelecionada = this.value;
-    listaFiltrada.innerHTML = '';
-    let algumFiltrado = false;
-
-if (dataSelecionada) {
-    tituloFiltrados.style.display = "";
-    listaFiltrada.style.display = "";
-    tituloTodos.style.display = "none";
-    listaTodos.style.display = "none";
-    itensTodos.forEach(function (item) {
-        if (item.getAttribute("data-data") === dataSelecionada) {
-            listaFiltrada.appendChild(item.cloneNode(true));
-            algumFiltrado = true;
-        }
-    });
-
-        if (!algumFiltrado) {
-            msgNenhumFiltrado.style.display = "";
-            listaFiltrada.appendChild(msgNenhumFiltrado);
-        }
-    } else {
-        tituloFiltrados.style.display = "none";
-        listaFiltrada.style.display = "none";
-        tituloTodos.style.display = "";
-        listaTodos.style.display = "";
-    }
-   });
-
-   btnMostrarTodos.addEventListener("click", function(){
-       filtroData.value = "";
-       filtroData.dispatchEvent(new Event('change'));
-   });
-
-});
-</script>
-}
+    </div>
+    <div class="col-lg-4 order-0 order-lg-1 mx-auto">
+        <img src="~/images/Calendario.svg" alt="To-do list" class="img-fluid" style="max-width: 300px;" />
+    </div>
+</div>

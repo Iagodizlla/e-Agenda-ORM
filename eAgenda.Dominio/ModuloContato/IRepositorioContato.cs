@@ -1,6 +1,5 @@
 ﻿using eAgenda.Dominio.Compartilhado;
 
-namespace eAgenda.Dominio.ModuloContato
-{
-    public interface IRepositorioContato : IRepositorio<Contato>;
-}
+namespace eAgenda.Dominio.ModuloContato;
+
+public interface IRepositorioContato : IRepositorio<Contato>;

@@ -1,4 +1,4 @@
-﻿@using eAgenda.Dominio.ModuloCompromisso
+﻿﻿@using eAgenda.Dominio.ModuloCompromisso
 
 @model EditarCompromissoViewModel
 
@@ -41,7 +41,7 @@
 
                     <div class="form-group d-grid gap-2 mt-3">
                         <label asp-for="Tipo" class="control-label fs-5">Tipo de Compromisso:</label>
-                        <select asp-for="Tipo" id="inputTipo" asp-items="@Html.GetEnumSelectList<TipoCompromissoEnum>()" class="form-select"></select>
+                        <select asp-for="Tipo" id="inputTipo" asp-items="@Html.GetEnumSelectList<TipoCompromisso>()" class="form-select"></select>
                         <span asp-validation-for="Tipo" class="text-danger"></span>
                     </div>
 

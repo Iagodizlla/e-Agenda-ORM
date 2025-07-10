@@ -10,6 +10,8 @@ using eAgenda.Infraestrutura.SqlServer.ModuloDespesa;
 using eAgenda.Infraestrutura.SqlServer.ModuloTarefa;
 using eAgenda.WebApp.ActionFilters;
 using eAgenda.WebApp.DependencyInjection;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace eAgenda.WebApp;
 
@@ -23,6 +25,13 @@ public class Program
         {
             options.Filters.Add<ValidarModeloAttribute>();
             options.Filters.Add<LogarAcaoAttribute>();
+        });
+
+        builder.Services.AddScoped<IDbConnection>(provider =>
+        {
+            var connectionString = "Data Source=(LocalDB)\\MSSQLLocalDB;Initial Catalog=eAgendaDb;Integrated Security=True";
+
+            return new SqlConnection(connectionString);
         });
 
         builder.Services.AddScoped<IRepositorioContato, RepositorioContatoEmSql>();

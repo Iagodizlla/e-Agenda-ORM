@@ -1,104 +1,107 @@
-﻿@model eAgenda.WebApp.Models.FormularioTarefaViewModel.VisualizarTarefaViewModel
-@using static eAgenda.WebApp.Models.FormularioTarefaViewModel
-@using System.Linq
+﻿@model VisualizarTarefasViewModel
 
 @{
     Layout = "_Layout";
     ViewBag.Titulo = "Visualização de Tarefas";
+
+    var status = Context.Request.Query["status"].ToString();
+
+    string ObterClassesDoFiltro(string filtro)
+    {
+        if (string.IsNullOrEmpty(filtro))
+            return string.IsNullOrEmpty(status) ? "btn btn-primary px-3 btn-filtro" : "btn btn-outline-primary px-3 btn-filtro";
+
+        return status == filtro ? "btn btn-primary px-3 btn-filtro" : "btn btn-outline-primary px-3 btn-filtro";
+    }
 }
 
 <div class="d-grid d-lg-flex flex-wrap gap-2 align-items-center">
-    <a class="btn btn-primary px-4" href="/tarefas/cadastrar">
+    <a class="btn btn-primary px-5" asp-action="Cadastrar">
         <i class="bi bi-plus"></i>
         Cadastrar Novo/a
     </a>
+
     <div class="ms-lg-auto d-grid d-lg-flex flex-wrap gap-2">
-        <a class="btn btn-outline-primary px-3 btn-filtro" asp-action="Index">
+        <a class="@ObterClassesDoFiltro(string.Empty)" asp-action="Index">
             <i class="bi bi-list"></i>
             Todas as tarefas
         </a>
 
-        <a class="btn btn-outline-primary px-3 btn-filtro" asp-action="Index" asp-route-status="Pendente">
-            <i class="bi bi-cart"></i>
+        <a class="@ObterClassesDoFiltro("pendentes")" asp-action="Index" asp-route-status="pendentes">
+            <i class="bi bi-clock-history"></i>
             Tarefas pendentes
         </a>
 
-        <a class="btn btn-outline-primary px-3 btn-filtro" asp-action="Index" asp-route-status="Concluído">
-            <i class="bi bi-cart-check"></i>
-            Tarefas Concluídas
+        <a class="@ObterClassesDoFiltro("concluidas")" asp-action="Index" asp-route-status="concluidas">
+            <i class="bi bi-check-all"></i>
+            Tarefas concluídas
         </a>
     </div>
 </div>
 
 <hr />
 
-<div class="d-flex flex-wrap gap-4">
-    @{
-        var prioridades = new[] { "Baixa", "Média", "Alta" };
-    }
-
-    @if (Model?.TarefasAgrupadasPorPrioridade != null)
+<div class="d-flex flex-wrap gap-2">
+    @foreach (var tarefa in Model.Registros)
     {
-        
-    @foreach (var prioridade in prioridades)
-    {
-        List<DetalhesTarefaViewModel> tarefasPorPrioridade;
-
-        if (Model.TarefasAgrupadasPorPrioridade.ContainsKey(prioridade))
-        {
-            tarefasPorPrioridade = Model.TarefasAgrupadasPorPrioridade[prioridade];
-        }
-        else
-        {
-            tarefasPorPrioridade = new List<DetalhesTarefaViewModel>();
-        }
-
-        if (tarefasPorPrioridade.Any())
-        {
-            <div class="card flex-grow-1" style="min-width: 280px; max-width: 350px;">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">@prioridade</h4>
-                </div>
+        <div class="col-12 col-md-3 coluna-card">
+            <div class="card border-0" style="height: 235px;">
                 <div class="card-body">
-                    @foreach (var item in tarefasPorPrioridade)
-                    {
-                        <div class="card mb-3 border shadow-sm">
-                            <div class="card-body p-3">
-                                <h5 class="card-title mb-2">Tarefa: @item.Titulo</h5>
-                                <p class="mb-1"><strong>Data de Criação:</strong> @item.DataCriacao.ToString("dd/MM/yyyy")</p>
-                                <p class="mb-1"><strong>Status:</strong> @item.StatusConcluida</p>
-                                <p class="mb-1"><strong>Percentual:</strong> @item.PercentualConcluida%</p>
-                                <p class="mb-1">
-                                    <strong>Data de Conclusão:</strong>
-                                    @(DateTime.Equals(item.DataConclusao, new DateTime(1753,1,1)) ? "Pendente" : item.DataConclusao.ToString("dd/MM/yyyy"))
-                                </p>
+                    <div class="d-flex justify-content-between align-items-baseline mb-2">
+                        <h5 class="card-title">@(tarefa.Titulo.Length > 18 ? tarefa.Titulo.Substring(0, 18) + "..." : tarefa.Titulo)</h5>
+                        <span class="badge rounded-pill text-bg-secondary px-3 py-2">@tarefa.Prioridade.ToString()</span>
+                    </div>
 
-                                <div class="d-flex justify-content-end gap-2 mt-2">
-                                    <a href="/tarefas/detalhes/@item.Id" class="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" title="Ver Detalhes">
-                                        <i class="bi bi-search"></i>
-                                    </a>
-                                    <a href="/tarefas/editar/@item.Id" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" title="Editar">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                    <a href="/tarefas/excluir/@item.Id" class="btn btn-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" title="Excluir">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+                    <p class="card-text mb-1"><span class="fw-semibold">Status:</span> @(tarefa.Concluida ? "Concluída" : "Pendente")</p>
+                    <p class="card-text mb-1"><span class="fw-semibold">Percentual de Conclusão:</span> @tarefa.PercentualConcluido.ToString() %</p>
+                    <p class="card-text mb-1"><span class="fw-semibold">Data de Criação:</span> @tarefa.DataCriacao.ToShortDateString()</p>
+
+                    @if (tarefa.Concluida)
+                    {
+                        <p class="card-text"><span class="fw-semibold">Data de Conclusão:</span> @tarefa.DataConclusao?.ToShortDateString()</p>
                     }
                 </div>
-            </div>
-        }
-    }
 
-    }
-    else
-    {
-        <p>Nenhuma tarefa encontrada.</p>
+                <div class="card-footer bg-transparent border-0">
+                    <span class="d-flex gap-1 justify-content-end">
+                        <a title="Gerenciar itens" asp-action="GerenciarItens" asp-route-id="@tarefa.Id" class="btn btn-secondary rounded-circle opcao-card">
+                            <i class="bi bi-list-check"></i>
+                        </a>
+
+                        @if (!tarefa.Concluida)
+                        {
+                            <form asp-action="AlternarStatus" asp-route-id="@tarefa.Id">
+                                <button title="Concluir tarefa" class="btn btn-success rounded-circle opcao-card">
+                                    <i class="bi bi-check-all"></i>
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="AlternarStatus" asp-route-id="@tarefa.Id">
+                                <button title="Marcar tarefa como pendente" asp-action="AlternarStatus" asp-route-id="@tarefa.Id" class="btn btn-success rounded-circle opcao-card">
+                                    <i class="bi bi-clock-history"></i>
+                                </button>
+                            </form>
+                        }
+
+                        @if (!tarefa.Concluida)
+                        {
+                            <a title="Editar" asp-action="Editar" asp-route-id="@tarefa.Id" class="btn btn-primary rounded-circle opcao-card">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        }
+
+                        @if (tarefa.Concluida)
+                        {
+                            <a title="Excluir" asp-action="Excluir" asp-route-id="@tarefa.Id" class="btn btn-danger rounded-circle opcao-card">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        }
+                    </span>
+                </div>
+
+            </div>
+        </div>
     }
 </div>
-
-@section Scripts {
-    <script src="~/js/ativacaoFiltrosTarefas.js"></script>
-}

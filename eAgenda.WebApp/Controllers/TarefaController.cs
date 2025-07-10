@@ -1,169 +1,225 @@
 ﻿using eAgenda.Dominio.ModuloTarefa;
-using eAgenda.Infraestrutura.SqlServer.ModuloTarefa;
 using eAgenda.WebApp.Extensions;
 using eAgenda.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
-using static eAgenda.WebApp.Models.FormularioTarefaViewModel;
 
-namespace eAgenda.WebApp.Controllers
+namespace eAgenda.WebApp.Controllers;
+
+[Route("tarefas")]
+public class TarefaController : Controller
 {
-    [Route("tarefas")]
-    public class TarefaController : Controller
+    private readonly IRepositorioTarefa repositorioTarefa;
+
+    public TarefaController(IRepositorioTarefa repositorioTarefa)
     {
-        private readonly IRepositorioTarefa repositorioTarefa;
+        this.repositorioTarefa = repositorioTarefa;
+    }
 
-        public TarefaController()
+    [HttpGet]
+    public IActionResult Index(string? status)
+    {
+        List<Tarefa> registros;
+
+        switch (status)
         {
-            repositorioTarefa = new RepositorioTarefaEmSql();
+            case "pendentes": registros = repositorioTarefa.SelecionarTarefasPendentes(); break;
+            case "concluidas": registros = repositorioTarefa.SelecionarTarefasConcluidas(); break;
+            default: registros = repositorioTarefa.SelecionarRegistros(); break;
         }
 
-        [HttpGet]
-        public IActionResult Index(string? status)
-        {
-            List<Tarefa> registros;
+        var visualizarVM = new VisualizarTarefasViewModel(registros);
 
-            switch (status)
+        return View(visualizarVM);
+    }
+
+    [HttpGet("cadastrar")]
+    public IActionResult Cadastrar()
+    {
+        var cadastrarVM = new CadastrarTarefaViewModel();
+
+        return View(cadastrarVM);
+    }
+
+    [HttpPost("cadastrar")]
+    [ValidateAntiForgeryToken]
+    public IActionResult Cadastrar(CadastrarTarefaViewModel cadastrarVM)
+    {
+        var registros = repositorioTarefa.SelecionarRegistros();
+
+        foreach (var item in registros)
+        {
+            if (item.Titulo.Equals(cadastrarVM.Titulo))
             {
-                case "Pendente": registros = repositorioTarefa.SelecionarTarefasPendentes(); break;
-                case "Concluído": registros = repositorioTarefa.SelecionarTarefasConcluidas(); break;
-                default: registros = repositorioTarefa.SelecionarTarefas(); break;
+                ModelState.AddModelError("CadastroUnico", "Já existe uma tarefa registrada com este título.");
+                break;
             }
-
-            var visualizarVM = new VisualizarTarefaViewModel(registros);
-
-            return View(visualizarVM);
         }
 
-        [HttpGet("cadastrar")]
-        public IActionResult Cadastrar()
-        {
-            var cadastrarVM = new CadastrarTarefaViewModel();
-
+        if (!ModelState.IsValid)
             return View(cadastrarVM);
-        }
 
-        [HttpPost("cadastrar")]
-        [ValidateAntiForgeryToken]
-        public IActionResult Cadastrar(CadastrarTarefaViewModel cadastrarVM)
-        {
-            var registros = repositorioTarefa.SelecionarTarefas();
+        var entidade = cadastrarVM.ParaEntidade();
 
-            foreach (var item in registros)
-            {
-                if (item.Titulo.Equals(cadastrarVM.Titulo))
-                {
-                    ModelState.AddModelError("CadastroUnico", "Já existe uma Tarefa registrado com este Titulo.");
-                    break;
-                }
-            }
+        repositorioTarefa.CadastrarRegistro(entidade);
 
-            for (int i = 0; i < cadastrarVM.TitulosItens.Count; i++)
-            {
-                var tituloItem = cadastrarVM.TitulosItens[i];
+        return RedirectToAction(nameof(Index));
+    }
 
-                if (string.IsNullOrWhiteSpace(tituloItem) || tituloItem.Length < 2 || tituloItem.Length > 100)
-                {
-                    ModelState.AddModelError($"TitulosItens[{i}]", $"O título do item {i + 1} deve ter entre 2 e 100 caracteres.");
-                }
-            }
+    [HttpGet("editar/{id:guid}")]
+    public IActionResult Editar(Guid id)
+    {
+        var registroSelecionado = repositorioTarefa.SelecionarRegistroPorId(id);
 
-            if (!ModelState.IsValid)
-                return View(cadastrarVM);
-
-            var novaTarefa = cadastrarVM.ParaEntidade(); // ou a viewmodel que usar pra cadastrar
-
-            novaTarefa.AtualizarPercentualConcluido(); // garante percentual e status atualizados
-
-            repositorioTarefa.Cadastrar(novaTarefa);
-
+        if (registroSelecionado is null)
             return RedirectToAction(nameof(Index));
+
+        var editarVM = new EditarTarefaViewModel(
+            registroSelecionado.Id,
+            registroSelecionado.Titulo,
+            registroSelecionado.Prioridade
+        );
+
+        return View(editarVM);
+    }
+
+    [HttpPost("editar/{id:guid}")]
+    [ValidateAntiForgeryToken]
+    public IActionResult Editar(Guid id, EditarTarefaViewModel editarVM)
+    {
+        var registros = repositorioTarefa.SelecionarRegistros();
+
+        foreach (var item in registros)
+        {
+            if (!item.Id.Equals(id) && item.Titulo.Equals(editarVM.Titulo))
+            {
+                ModelState.AddModelError("CadastroUnico", "Já existe uma tarefa registrada com este título.");
+                break;
+            }
         }
 
-        [HttpGet("editar/{id:guid}")]
-        public IActionResult Editar(Guid id)
-        {
-            var tarefa = repositorioTarefa.SelecionarTarefaPorId(id);
-
-            if (tarefa == null)
-                return NotFound();
-
-            var editarVM = new EditarTarefaViewModel(
-                tarefa.Id,
-                tarefa.Titulo,
-                tarefa.Prioridade,
-                tarefa.DataCriacao,
-                tarefa.StatusConcluida,
-                tarefa.PercentualConcluido,
-                tarefa.DataConclusao,
-                tarefa.Itens
-            );
-
+        if (!ModelState.IsValid)
             return View(editarVM);
-        }
 
-        [HttpPost("editar/{id:guid}")]
-        public IActionResult EditarConfirmado(Guid id, EditarTarefaViewModel editarVM)
-        {
-            for (int i = 0; i < editarVM.TitulosItens.Count; i++)
-            {
-                var tituloItem = editarVM.TitulosItens[i];
+        var registroEditado = editarVM.ParaEntidade();
 
-                if (string.IsNullOrWhiteSpace(tituloItem) || tituloItem.Length < 2 || tituloItem.Length > 100)
-                {
-                    ModelState.AddModelError($"TitulosItens[{i}]", $"O título do item {i + 1} deve ter entre 2 e 100 caracteres.");
-                }
-            }
+        repositorioTarefa.EditarRegistro(id, registroEditado);
 
-            if (!ModelState.IsValid)
-                return View("Editar", editarVM);
+        return RedirectToAction(nameof(Index));
+    }
 
-            var entidadeEditada = editarVM.ParaEntidade();
+    [HttpGet("excluir/{id:guid}")]
+    public IActionResult Excluir(Guid id)
+    {
+        var registroSelecionado = repositorioTarefa.SelecionarRegistroPorId(id);
 
-            entidadeEditada.AtualizarPercentualConcluido();
-
-            repositorioTarefa.Editar(id, entidadeEditada);
-
+        if (registroSelecionado is null)
             return RedirectToAction(nameof(Index));
-        }
 
-        [HttpGet("excluir/{id:guid}")]
-        public IActionResult Excluir(Guid id)
-        {
-            var registroSelecionado = repositorioTarefa.SelecionarTarefaPorId(id);
+        var excluirVM = new ExcluirTarefaViewModel(registroSelecionado.Id, registroSelecionado.Titulo);
 
-            var excluirVM = new ExcluirTarefaViewModel(registroSelecionado.Id, registroSelecionado.Titulo);
+        return View(excluirVM);
+    }
 
-            return View(excluirVM);
-        }
+    [HttpPost("excluir/{id:guid}")]
+    public IActionResult ExcluirConfirmado(Guid id)
+    {
+        repositorioTarefa.ExcluirRegistro(id);
 
-        [HttpPost("excluir/{id:guid}")]
-        public IActionResult ExcluirConfirmado(Guid id)
-        {
-            repositorioTarefa.Excluir(id);
+        return RedirectToAction(nameof(Index));
+    }
 
+    [HttpPost, Route("/tarefas/{id:guid}/alternar-status")]
+    public IActionResult AlternarStatus(Guid id)
+    {
+        var tarefaSelecionada = repositorioTarefa.SelecionarRegistroPorId(id);
+
+        if (tarefaSelecionada is null)
             return RedirectToAction(nameof(Index));
-        }
 
-        [HttpGet("detalhes/{id:guid}")]
-        public IActionResult Detalhes(Guid id)
-        {
-            var tarefa = repositorioTarefa.SelecionarTarefaPorId(id);
+        if (tarefaSelecionada.Concluida)
+            tarefaSelecionada.MarcarPendente();
+        else
+            tarefaSelecionada.Concluir();
 
-            if (tarefa == null)
-                return NotFound();
+        repositorioTarefa.EditarRegistro(id, tarefaSelecionada);
 
-            var detalhesVM = new DetalhesTarefaViewModel(
-                tarefa.Id,
-                tarefa.Titulo,
-                tarefa.Prioridade,
-                tarefa.DataCriacao,
-                tarefa.StatusConcluida,
-                tarefa.PercentualConcluido,
-                tarefa.Itens,
-                tarefa.DataConclusao
-            );
+        return RedirectToAction(nameof(Index));
+    }
 
-            return View(detalhesVM);
-        }
+    [HttpGet, Route("/tarefas/{id:guid}/gerenciar-itens")]
+    public IActionResult GerenciarItens(Guid id)
+    {
+        var tarefaSelecionada = repositorioTarefa.SelecionarRegistroPorId(id);
+
+        if (tarefaSelecionada is null)
+            return RedirectToAction(nameof(Index));
+
+        var gerenciarItensViewModel = new GerenciarItensViewModel(tarefaSelecionada);
+
+        return View(gerenciarItensViewModel);
+    }
+
+    [HttpPost, Route("/tarefas/{id:guid}/adicionar-item")]
+    public IActionResult AdicionarItem(Guid id, string tituloItem)
+    {
+        var tarefaSelecionada = repositorioTarefa.SelecionarRegistroPorId(id);
+
+        if (tarefaSelecionada is null)
+            return RedirectToAction(nameof(Index));
+
+        var itemAdicionado = tarefaSelecionada.AdicionarItem(tituloItem);
+
+        repositorioTarefa.AdicionarItem(itemAdicionado);
+
+        var gerenciarItensViewModel = new GerenciarItensViewModel(tarefaSelecionada);
+
+        return View(nameof(GerenciarItens), gerenciarItensViewModel);
+    }
+
+    [HttpPost, Route("/tarefas/{idTarefa:guid}/alternar-status-item/{idItem:guid}")]
+    public IActionResult AlternarStatusItem(Guid idTarefa, Guid idItem)
+    {
+        var tarefaSelecionada = repositorioTarefa.SelecionarRegistroPorId(idTarefa);
+
+        if (tarefaSelecionada is null)
+            return RedirectToAction(nameof(Index));
+
+        var itemSelecionado = tarefaSelecionada.ObterItem(idItem);
+
+        if (itemSelecionado is null)
+            return RedirectToAction(nameof(Index));
+
+        if (!itemSelecionado.Concluido)
+            tarefaSelecionada.ConcluirItem(itemSelecionado);
+        else
+            tarefaSelecionada.MarcarItemPendente(itemSelecionado);
+
+        repositorioTarefa.AtualizarItem(itemSelecionado);
+
+        var gerenciarItensViewModel = new GerenciarItensViewModel(tarefaSelecionada);
+
+        return View(nameof(GerenciarItens), gerenciarItensViewModel);
+    }
+
+    [HttpPost, Route("/tarefas/{idTarefa:guid}/remover-item/{idItem:guid}")]
+    public IActionResult RemoverItem(Guid idTarefa, Guid idItem)
+    {
+        var tarefaSelecionada = repositorioTarefa.SelecionarRegistroPorId(idTarefa);
+
+        if (tarefaSelecionada is null)
+            return RedirectToAction(nameof(Index));
+
+        var itemSelecionado = tarefaSelecionada.ObterItem(idItem);
+
+        if (itemSelecionado is null)
+            return RedirectToAction(nameof(Index));
+
+        tarefaSelecionada.RemoverItem(itemSelecionado);
+
+        repositorioTarefa.RemoverItem(itemSelecionado);
+
+        var gerenciarItensViewModel = new GerenciarItensViewModel(tarefaSelecionada);
+
+        return View(nameof(GerenciarItens), gerenciarItensViewModel);
     }
 }

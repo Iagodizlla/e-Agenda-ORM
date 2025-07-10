@@ -18,8 +18,8 @@
     @foreach (var item in Model.Registros)
     {
         <div class="col-12 col-md-3">
-            <div class="card border-0">
-                <div class="card-body">
+            <div class="card border-0" style="min-height: 238px;">
+                <div class="card-body d-flex flex-column">
                     <h5 class="card-title">@item.Assunto</h5>
                     <p class="card-text mb-0"><span class="fw-semibold">Data de Ocorrência:</span> @item.Data.ToShortDateString()</p>
                     <p class="card-text mb-0"><span class="fw-semibold">Horário de Início:</span> @item.HoraInicio.ToString(@"hh\:mm")</p>

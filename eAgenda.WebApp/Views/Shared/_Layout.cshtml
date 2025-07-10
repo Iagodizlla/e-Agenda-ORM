@@ -2,20 +2,23 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <link rel="stylesheet" href="~/lib/bootstrap-5.3.6-dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.css" />
     <link rel="stylesheet" href="~/css/app.css" />
 
-    <title>@ViewBag.Titulo | Bem Vindo à sua agenda digital!</title>
+    <link rel="icon" href="@(Url.Content("~/favicon.ico"))" />
+
+    <title>@ViewBag.Titulo | e-Agenda</title>
 </head>
 <body>
-    <partial name="_NavbarPartial"/>
+    <partial name="_NavbarPartial" />
 
     <header class="container my-4">
-        <h2>@ViewBag.Titulo</h2>
+        <h2 class="text-primary">@ViewBag.Titulo</h2>
     </header>
+
     <main class="container my-4">
         @RenderBody()
     </main>

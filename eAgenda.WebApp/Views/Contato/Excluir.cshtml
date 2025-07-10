@@ -1,5 +1,4 @@
-﻿@using static eAgenda.WebApp.Models.FormularioContatoViewModel
-@model ExcluirContatoViewModel
+﻿@model ExcluirContatoViewModel
 
 @{
     Layout = "_Layout";
@@ -11,22 +10,14 @@
     <div class="col-md-8">
         <div class="card rounded-4 border-0">
             <div class="card-body p-md-5">
-
-                
-
-                @if (TempData["MensagemErro"] != null)
-                {
-                    <div class="alert alert-danger">@TempData["MensagemErro"]</div>
-                }
-
                 <h3>Formulário de Exclusão</h3>
 
-                <p class="mt-4">Você deseja realmente excluir o Contato "@Model.Nome"?</p>
+                <p class="mt-4">Você deseja realmente excluir o contato "@Model.Nome"?</p>
 
-                <form action="/contatos/excluir/@Model.Id" method="post">
+                <form asp-action="Excluir" asp-route-id="@Model.Id">
                     <div class="form-group d-flex align-items-center justify-content-end gap-3">
                         <a href="/contatos">Voltar para a listagem</a>
-                        <button type="submit" class="btn btn-danger px-5">Confirmar</button>                      
+                        <button type="submit" class="btn btn-danger px-5">Confirmar</button>
                     </div>
                 </form>
             </div>

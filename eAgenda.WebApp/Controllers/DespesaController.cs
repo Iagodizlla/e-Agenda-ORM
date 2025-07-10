@@ -4,7 +4,6 @@ using eAgenda.WebApp.Extensions;
 using eAgenda.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using static eAgenda.WebApp.Models.FormularioDespesaViewModel;
 
 namespace eAgenda.WebApp.Controllers;
 

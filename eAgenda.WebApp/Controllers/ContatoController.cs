@@ -1,132 +1,148 @@
-﻿using eAgenda.Dominio.ModuloCompromisso;
-using eAgenda.Dominio.ModuloContato;
-using eAgenda.Infraestrutura.SqlServer.ModuloCompromisso;
-using eAgenda.Infraestrutura.SqlServer.ModuloContato;
+﻿using eAgenda.Dominio.ModuloContato;
 using eAgenda.WebApp.Extensions;
 using eAgenda.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
-using static eAgenda.WebApp.Models.FormularioContatoViewModel;
 
-namespace eAgenda.WebApp.Controllers
+namespace eAgenda.WebApp.Controllers;
+
+[Route("contatos")]
+public class ContatoController : Controller
 {
-    [Route("contatos")]
-    public class ContatoController : Controller
+    private readonly IRepositorioContato repositorioContato;
+
+    public ContatoController(IRepositorioContato repositorioContato)
     {
-        private readonly IRepositorioContato repositorioContato;
-        private readonly IRepositorioCompromisso repoisitorioCompromisso;
+        this.repositorioContato = repositorioContato;
+    }
 
-        public ContatoController()
+    [HttpGet]
+    public IActionResult Index()
+    {
+        var registros = repositorioContato.SelecionarRegistros();
+
+        var visualizarVM = new VisualizarContatosViewModel(registros);
+
+        return View(visualizarVM);
+    }
+
+    [HttpGet("cadastrar")]
+    public IActionResult Cadastrar()
+    {
+        var cadastrarVM = new CadastrarContatoViewModel();
+
+        return View(cadastrarVM);
+    }
+
+    [HttpPost("cadastrar")]
+    [ValidateAntiForgeryToken]
+    public IActionResult Cadastrar(CadastrarContatoViewModel cadastrarVM)
+    {
+        var registros = repositorioContato.SelecionarRegistros();
+
+        foreach (var item in registros)
         {
-            repositorioContato = new RepositorioContatoEmSql();
-            repoisitorioCompromisso = new RepositorioCompromissoEmSql();
-        }
-
-        [HttpGet]
-        public IActionResult Index()
-        {
-            var registros = repositorioContato.SelecionarRegistros();
-
-            var visualizarVM = new VisualizarContatoViewModel(registros);
-
-            return View(visualizarVM);
-        }
-
-        [HttpGet("cadastrar")]
-        public IActionResult Cadastrar()
-        {
-            var cadastrarVM = new CadastrarContatoViewModel();
-
-            return View(cadastrarVM);
-        }
-
-        [HttpPost("cadastrar")]
-        [ValidateAntiForgeryToken]
-        public IActionResult Cadastrar(CadastrarContatoViewModel cadastrarVM)
-        {
-            var registros = repositorioContato.SelecionarRegistros() ?? new List<Contato>();
-
-            foreach (var item in registros)
+            if (item.Nome.Equals(cadastrarVM.Nome))
             {
-                if (item.Email.Equals(cadastrarVM.Email))
-                {
-                    ModelState.AddModelError("CadastroUnico", "Já existe um Contato registrado com este Email.");
-                    return View(cadastrarVM);
-                }
-
-                if (item.Telefone.Equals(cadastrarVM.Telefone))
-                {
-                    ModelState.AddModelError("CadastroUnico", "Já existe um Contato registrado com este Telefone.");
-                    return View(cadastrarVM);
-                }
+                ModelState.AddModelError("CadastroUnico", "Já existe um contato registrado com este nome.");
+                return View(cadastrarVM);
             }
 
-            var entidade = cadastrarVM.ParaEntidade();
-
-            repositorioContato.CadastrarRegistro(entidade);
-
-            return RedirectToAction(nameof(Index));
+            if (item.Email.Equals(cadastrarVM.Email))
+            {
+                ModelState.AddModelError("CadastroUnico", "Já existe um contato registrado com este endereço de e-mail.");
+                return View(cadastrarVM);
+            }
         }
 
-        [HttpGet("editar/{id:guid}")]
-        public IActionResult Editar(Guid id)
-        {
-            var registroSelecionado = repositorioContato.SelecionarRegistroPorId(id);
+        var entidade = cadastrarVM.ParaEntidade();
 
-            var editarVM = new EditarContatoViewModel(
-                id,
-                registroSelecionado.Nome,
-                registroSelecionado.Email,
-                registroSelecionado.Telefone,
-                registroSelecionado.Cargo,
-                registroSelecionado.Empresa
+        repositorioContato.CadastrarRegistro(entidade);
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet("editar/{id:guid}")]
+    public ActionResult Editar(Guid id)
+    {
+        var registroSelecionado = repositorioContato.SelecionarRegistroPorId(id);
+
+        var editarVM = new EditarContatoViewModel(
+            id,
+            registroSelecionado.Nome,
+            registroSelecionado.Telefone,
+            registroSelecionado.Email,
+            registroSelecionado.Empresa,
+            registroSelecionado.Cargo
+        );
+
+        return View(editarVM);
+    }
+
+    [HttpPost("editar/{id:guid}")]
+    [ValidateAntiForgeryToken]
+    public ActionResult Editar(Guid id, EditarContatoViewModel editarVM)
+    {
+        var registros = repositorioContato.SelecionarRegistros();
+
+        foreach (var item in registros)
+        {
+            if (!item.Id.Equals(id) && item.Nome.Equals(editarVM.Nome))
+            {
+                ModelState.AddModelError("CadastroUnico", "Já existe um contato registrado com este nome.");
+                return View(editarVM);
+
+            }
+
+            if (!item.Id.Equals(id) && item.Email.Equals(editarVM.Email))
+            {
+                ModelState.AddModelError("CadastroUnico", "Já existe um contato registrado com este endereço de e-mail.");
+                return View(editarVM);
+            }
+        }
+
+        var entidadeEditada = editarVM.ParaEntidade();
+
+        repositorioContato.EditarRegistro(id, entidadeEditada);
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet("excluir/{id:guid}")]
+    public IActionResult Excluir(Guid id)
+    {
+        var registroSelecionado = repositorioContato.SelecionarRegistroPorId(id);
+
+        var excluirVM = new ExcluirContatoViewModel(
+            registroSelecionado.Id,
+            registroSelecionado.Nome
             );
 
-            return View(editarVM);
-        }
+        return View(excluirVM);
+    }
 
-        [HttpPost("editar/{id:guid}")]
-        [ValidateAntiForgeryToken]
-        public IActionResult Editar(Guid id, EditarContatoViewModel editarVM)
-        {
-            var registros = repositorioContato.SelecionarRegistros();
+    [HttpPost("excluir/{id:guid}")]
+    [ValidateAntiForgeryToken]
+    public IActionResult ExcluirConfirmado(Guid id)
+    {
+        repositorioContato.ExcluirRegistro(id);
 
-            var entidadeEditada = editarVM.ParaEntidade();
+        return RedirectToAction(nameof(Index));
+    }
 
-            repositorioContato.EditarRegistro(id, entidadeEditada);
+    [HttpGet("detalhes/{id:guid}")]
+    public IActionResult Detalhes(Guid id)
+    {
+        var registroSelecionado = repositorioContato.SelecionarRegistroPorId(id);
 
-            return RedirectToAction(nameof(Index));
-        }
+        var detalhesVM = new DetalhesContatoViewModel(
+            id,
+            registroSelecionado.Nome,
+            registroSelecionado.Telefone,
+            registroSelecionado.Email,
+            registroSelecionado.Empresa,
+            registroSelecionado.Cargo
+        );
 
-        [HttpGet("excluir/{id:guid}")]
-        public IActionResult Excluir(Guid id)
-        {
-            var registroSelecionado = repositorioContato.SelecionarRegistroPorId(id);
-
-            if(registroSelecionado is null) return View("Index");
-            var excluirVM = new ExcluirContatoViewModel(registroSelecionado.Id, registroSelecionado.Nome);
-
-            return View(excluirVM);
-        }
-
-        [HttpPost("excluir/{id:guid}")]
-        public IActionResult ExcluirConfirmado(Guid id)
-        {
-
-            foreach (var compromisso in repoisitorioCompromisso.SelecionarRegistros())
-            {
-                if (compromisso.Contato != null &&
-                    compromisso.Contato.Id == id &&
-                    compromisso.DataOcorrencia >= DateTime.Today)
-                {
-                    TempData["MensagemErro"] = "Contato não pode ser excluído pois possui compromisso em aberto!";
-                    return RedirectToAction(nameof(Excluir), new { id });
-                }
-            }
-
-            repositorioContato.ExcluirRegistro(id);
-
-            return RedirectToAction(nameof(Index));
-        }
+        return View(detalhesVM);
     }
 }
-

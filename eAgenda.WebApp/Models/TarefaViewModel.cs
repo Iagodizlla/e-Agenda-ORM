@@ -6,196 +6,127 @@ namespace eAgenda.WebApp.Models;
 
 public abstract class FormularioTarefaViewModel
 {
-    [Required(ErrorMessage = "O campo \"Titulo\" é obrigatório.")]
-    [StringLength(100, MinimumLength = 2, ErrorMessage = "O campo \"Titulo\" precisa conter entre 2 e 100 caracteres.")]
+    [Required(ErrorMessage = "O campo \"Título\" é obrigatório.")]
+    [MinLength(2, ErrorMessage = "O campo \"Título\" precisa conter ao menos 2 caracteres.")]
+    [MaxLength(100, ErrorMessage = "O campo \"Título\" precisa conter no máximo 100 caracteres.")]
     public string Titulo { get; set; }
-    public string Prioridade { get; set; } = "Baixa"; // Default value
-    public DateTime DataCriacao { get; set; } = DateTime.Now;
-    public DateTime DataConclusao { get; set; }
-    public string StatusConcluida { get; set; } = "Pendente"; // Default value
-    public double PercentualConcluida { get; set; } = 0.0;
-    public List<Item>? Itens { get; set; }
 
-    public class CadastrarTarefaViewModel : FormularioTarefaViewModel
+    [Required(ErrorMessage = "O campo \"Prioridade\" é obrigatório.")]
+    public PrioridadeTarefa Prioridade { get; set; }
+}
+
+public class CadastrarTarefaViewModel : FormularioTarefaViewModel
+{
+    public CadastrarTarefaViewModel() { }
+
+    public CadastrarTarefaViewModel(string titulo, PrioridadeTarefa prioridade)
     {
-        public List<string> TitulosItens { get; set; } = new();
-        public List<string> StatusConclusoesItens { get; set; } = new();
+        Titulo = titulo;
+        Prioridade = prioridade;
+    }
+}
 
-        public CadastrarTarefaViewModel()
+public class EditarTarefaViewModel : FormularioTarefaViewModel
+{
+    public Guid Id { get; set; }
+
+    public EditarTarefaViewModel() { }
+
+    public EditarTarefaViewModel(Guid id, string titulo, PrioridadeTarefa prioridade)
+    {
+        Id = id;
+        Titulo = titulo;
+        Prioridade = prioridade;
+    }
+}
+
+public class ExcluirTarefaViewModel
+{
+    public Guid Id { get; set; }
+    public string Titulo { get; set; }
+
+    public ExcluirTarefaViewModel(Guid id, string titulo)
+    {
+        Id = id;
+        Titulo = titulo;
+    }
+}
+
+public class VisualizarTarefasViewModel
+{
+    public List<DetalhesTarefaViewModel> Registros { get; set; }
+
+    public VisualizarTarefasViewModel(List<Tarefa> tarefas)
+    {
+        Registros = new List<DetalhesTarefaViewModel>();
+
+        foreach (var t in tarefas)
+            Registros.Add(t.ParaDetalhesVM());
+    }
+}
+
+public class DetalhesTarefaViewModel
+{
+    public Guid Id { get; set; }
+    public string Titulo { get; set; }
+    public PrioridadeTarefa Prioridade { get; set; }
+    public DateTime DataCriacao { get; set; }
+    public DateTime? DataConclusao { get; set; }
+    public bool Concluida { get; set; }
+    public decimal PercentualConcluido { get; set; }
+
+    public DetalhesTarefaViewModel(
+        Guid id,
+        string titulo,
+        PrioridadeTarefa prioridade,
+        DateTime dataCriacao,
+        DateTime? dataConclusao,
+        bool concluida,
+        decimal percentualConcluido
+    )
+    {
+        Id = id;
+        Titulo = titulo;
+        Prioridade = prioridade;
+        DataCriacao = dataCriacao;
+        DataConclusao = dataConclusao;
+        Concluida = concluida;
+        PercentualConcluido = percentualConcluido;
+    }
+}
+
+public class GerenciarItensViewModel
+{
+    public DetalhesTarefaViewModel Tarefa { get; set; }
+    public List<ItemTarefaViewModel> Itens { get; set; }
+
+    public GerenciarItensViewModel() { }
+
+    public GerenciarItensViewModel(Tarefa tarefa) : this()
+    {
+        Tarefa = tarefa.ParaDetalhesVM();
+
+        Itens = new List<ItemTarefaViewModel>();
+
+        foreach (var i in tarefa.Itens)
         {
-            Itens = new List<Item>();
-        }
+            var itemVM = new ItemTarefaViewModel(i.Id, i.Titulo, i.Concluido);
 
-        public CadastrarTarefaViewModel(
-            string titulo,
-            string prioridade,
-            DateTime dataCriacao,
-            string statusConcluida,
-            double percentualConcluida,
-            List<Item> itens,
-            DateTime dataConclusao
-        ) : this()
-        {
-            Titulo = titulo;
-            Prioridade = prioridade;
-            DataCriacao = dataCriacao;
-            DataConclusao = dataConclusao;
-            StatusConcluida = statusConcluida;
-            PercentualConcluida = percentualConcluida;
-        }
-
-        public Tarefa ParaEntidade()
-        {
-            var tarefa = new Tarefa
-            (
-                Titulo,
-                Prioridade,
-                DataCriacao,
-                StatusConcluida,
-                DataConclusao
-            );
-
-            for (int i = 0; i < TitulosItens?.Count; i++)
-            {
-                var item = new Item(TitulosItens[i], StatusConclusoesItens[i], tarefa);
-                tarefa.Itens.Add(item);
-            }
-
-            return tarefa;
+            Itens.Add(itemVM);
         }
     }
+}
 
-    public class EditarTarefaViewModel : FormularioTarefaViewModel
+public class ItemTarefaViewModel
+{
+    public Guid Id { get; set; }
+    public string Titulo { get; set; }
+    public bool Concluido { get; set; }
+
+    public ItemTarefaViewModel(Guid id, string titulo, bool concluido)
     {
-        public Guid Id { get; set; }
-
-        public List<string> TitulosItens { get; set; } = new();
-        public List<string> StatusConclusoesItens { get; set; } = new();
-
-        public EditarTarefaViewModel()
-        {
-            // Inicializa as listas para evitar null
-            TitulosItens = new List<string>();
-            StatusConclusoesItens = new List<string>();
-        }
-
-        public EditarTarefaViewModel(Guid id, string titulo, string prioridade, DateTime dataCriacao,
-            string statusConcluida, double percentualConcluida, DateTime dataConclusao, List<Item> itens)
-            : this() // chama o construtor padrão
-        {
-            Id = id;
-            Titulo = titulo;
-            Prioridade = prioridade;
-            DataCriacao = dataCriacao;
-            StatusConcluida = statusConcluida;
-            PercentualConcluida = percentualConcluida;
-            DataConclusao = dataConclusao;
-
-            if (itens != null)
-            {
-                foreach (var item in itens)
-                {
-                    TitulosItens.Add(item.Titulo);
-                    StatusConclusoesItens.Add(item.Concluido);
-                }
-            }
-        }
-
-        public Tarefa ParaEntidade()
-        {
-            var tarefa = new Tarefa {
-                Titulo = Titulo,
-                Prioridade = Prioridade,
-                DataCriacao = DataCriacao,
-                StatusConcluida = StatusConcluida,
-                DataConclusao = DataConclusao
-            };
-
-            for (int i = 0; i < TitulosItens?.Count; i++)
-            {
-                var item = new Item(TitulosItens[i], StatusConclusoesItens[i], tarefa);
-                tarefa.Itens.Add(item);
-            }
-
-            return tarefa;
-        }
+        Id = id;
+        Titulo = titulo;
+        Concluido = concluido;
     }
-
-
-    public class ExcluirTarefaViewModel
-    {
-        public Guid Id { get; set; }
-        public string Titulo { get; set; }
-
-        public ExcluirTarefaViewModel() { }
-
-        public ExcluirTarefaViewModel(Guid id, string titulo) : this()
-        {
-            Id = id;
-            Titulo = titulo;
-        }
-    }
-
-    public class VisualizarTarefaViewModel
-    {
-        public List<DetalhesTarefaViewModel> Registros { get; }
-
-        public Dictionary<string, List<DetalhesTarefaViewModel>> TarefasAgrupadasPorPrioridade { get; }
-
-        public VisualizarTarefaViewModel(List<Tarefa> tarefas)
-        {
-            Registros = new List<DetalhesTarefaViewModel>();
-
-            if (tarefas != null)
-            {
-                foreach (var t in tarefas)
-                {
-                    var detalhesVM = t.ParaDetalhesVM();
-                    Registros.Add(detalhesVM);
-                }
-            }
-
-            TarefasAgrupadasPorPrioridade = Registros
-                .GroupBy(t => t.Prioridade.ToString())
-                .ToDictionary(g => g.Key, g => g.ToList());
-        }
-    }
-
-    public class DetalhesTarefaViewModel
-    {
-        public Guid Id { get; }
-        public string Titulo { get; }
-        public string Prioridade { get; }
-        public DateTime DataCriacao { get; }
-        public DateTime DataConclusao { get; }
-        public string StatusConcluida { get; }
-        public double PercentualConcluida { get; }
-        public List<Item> Itens { get; } = new List<Item>();
-
-        public DetalhesTarefaViewModel(Guid id, string titulo, string prioridade, DateTime dataCriacao, string statusConcluida, double percentualConcluida, List<Item> itens, DateTime dataConclusao)
-        {
-            Id = id;
-            Titulo = titulo;
-            Prioridade = prioridade;
-            DataCriacao = dataCriacao;
-            DataConclusao = dataConclusao;
-            StatusConcluida = statusConcluida;
-            PercentualConcluida = percentualConcluida;
-            Itens = itens ?? new List<Item>(); // <-- ESSA LINHA É ESSENCIAL
-        }
-    }
-
-    public class SelecionarTarefaViewModel
-    {
-        public Guid Id { get; set; }
-        public string Prioridade { get; }
-        public string Titulo { get; set; }
-
-        public SelecionarTarefaViewModel(Guid id, string prioridade, string titulo)
-        {
-            Id = id;
-            Prioridade = prioridade;
-            Titulo = titulo;
-        }
-    } 
 }

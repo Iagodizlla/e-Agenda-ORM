@@ -1,0 +1,131 @@
+﻿@model GerenciarItensViewModel
+
+@{
+    Layout = "_Layout";
+    ViewBag.Titulo = "Gerenciar Itens da Tarefa";
+
+    bool ItensEstaoConcluidos(List<ItemTarefaViewModel> itens)
+    {
+        var itensConcluidos = true;
+
+        foreach (var item in itens)
+        {
+            if (!item.Concluido)
+                itensConcluidos = false;
+        }
+
+        return itensConcluidos;
+    }
+}
+
+<hr />
+<div class="row justify-content-center my-5">
+    <div class="col-md-8">
+        <div class="card rounded-4 border-0">
+            <div class="card-body p-md-5">
+                <h3>Gestão de Tarefa</h3>
+
+                <div class="row my-4">
+                    <div class="mt-2">
+                        <label class="control-label"><strong>Título:</strong> @Model.Tarefa.Titulo</label>
+                    </div>
+
+                    <div class="mt-2">
+                        <label class="control-label"><strong>Prioridade:</strong> @Model.Tarefa.Prioridade.ToString()</label>
+                    </div>
+
+                    <div class="mt-2">
+                        <label class="control-label"><strong>Data de Criação:</strong> @Model.Tarefa.DataCriacao.ToShortDateString()</label>
+                    </div>
+                </div>
+
+                <h4 class="my-3">Itens</h4>
+
+                <form class="d-flex flex-wrap gap-2 align-items-center" action="/tarefas/@Model.Tarefa.Id/adicionar-item" method="post">
+                    <div class="col">
+                        <label class="control-label">Título do Item: </label>
+                        <input name="tituloItem" class="form-control w-100" />
+                    </div>
+
+                    <button type="submit" class="btn btn-outline-primary align-self-end col-lg-2">
+                        Adicionar
+                    </button>
+                </form>
+
+                @if (!Model.Itens.Any())
+                {
+                    <p class="fw-semibold mt-3">Ainda não há nenhum item relacionado à tarefa...</p>
+                }
+                else
+                {
+                    <table class="table table-sm table-striped mt-3">
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Itens)
+                            {
+                                <tr>
+                                    <td class="py-3">@item.Titulo</td>
+                                    <td class="py-3">@(item.Concluido ? "Concluído" : "Pendente")</td>
+                                    <td>
+                                        <div class="d-flex gap-1 p-2">
+                                            @if (item.Concluido)
+                                            {
+                                                <form action="/tarefas/@Model.Tarefa.Id/alternar-status-item/@item.Id" method="post">
+                                                    <button class="btn btn-sm btn-outline-primary rounded-circle" title="Marcar como pendente">
+                                                        <i class="bi bi-clock-history"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form action="/tarefas/@Model.Tarefa.Id/alternar-status-item/@item.Id" method="post">
+                                                    <button class="btn btn-sm btn-outline-primary rounded-circle" title="Concluir">
+                                                        <i class="bi bi-check-all"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            <form action="/tarefas/@Model.Tarefa.Id/remover-item/@item.Id" method="post">
+                                                <button class="btn btn-sm btn-danger rounded-circle" title="Remover">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+
+                @if (Model.Tarefa.Concluida)
+                {
+                    <span class="d-flex align-items-center gap-2">
+                        <i class="bi bi-check-all"></i> Tarefa concluída
+                    </span>
+                }
+                else
+                {
+                    <span class="d-flex align-items-center justify-content-between gap-2">
+                        <span><i class="bi bi-clock-history"></i> Tarefa pendente</span>
+
+                        <span>Percentual de conclusão: @Model.Tarefa.PercentualConcluido.ToString("F2") %</span>
+                    </span>
+                }
+
+                <span class="d-flex justify-content-end mt-3">
+                    <a href="/tarefas">Voltar para a listagem</a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
