@@ -205,49 +205,40 @@ public class RepositorioTarefaEmSql : RepositorioBaseEmSql<Tarefa>, IRepositorio
 
     public List<Tarefa> SelecionarTarefasPendentes()
     {
-        var tarefasPendentes = new List<Tarefa>();
+        var registros = base.SelecionarRegistros();
+        var pendentes = new List<Tarefa>();
 
-        var comando = conexaoComBanco.CreateCommand();
-        comando.CommandText = SqlSelecionarTarefasPendentes;
-
-        conexaoComBanco.Open();
-
-        var leitorTarefa = comando.ExecuteReader();
-
-        while (leitorTarefa.Read())
+        foreach (var registro in registros)
         {
-            var tarefa = ConverterParaRegistro(leitorTarefa);
-
-            tarefasPendentes.Add(tarefa);
+            if (!registro.Concluida)
+            {
+                pendentes.Add(registro);
+            }
         }
 
-        conexaoComBanco.Close();
+        foreach (var pendente in pendentes)
+            CarregarItensTarefa(pendente);
 
-        return tarefasPendentes;
+        return pendentes;
     }
 
     public List<Tarefa> SelecionarTarefasConcluidas()
     {
-        var tarefasConcluidas = new List<Tarefa>();
+        var registros = base.SelecionarRegistros();
+        var concluidos = new List<Tarefa>();
 
-        var comando = conexaoComBanco.CreateCommand();
-        comando.CommandText = SqlSelecionarTarefasConcluidas;
-
-        conexaoComBanco.Open();
-
-        var leitorTarefa = comando.ExecuteReader();
-
-
-        while (leitorTarefa.Read())
+        foreach (var registro in registros)
         {
-            var tarefa = ConverterParaRegistro(leitorTarefa);
-
-            tarefasConcluidas.Add(tarefa);
+            if (registro.Concluida)
+            {
+                concluidos.Add(registro);
+            }
         }
 
-        conexaoComBanco.Close();
+        foreach (var concluido in concluidos)
+            CarregarItensTarefa(concluido);
 
-        return tarefasConcluidas;
+        return concluidos;
     }
 
     public override Tarefa? SelecionarRegistroPorId(Guid idRegistro)

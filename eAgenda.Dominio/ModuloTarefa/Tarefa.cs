@@ -9,7 +9,6 @@ public class Tarefa : EntidadeBase<Tarefa>
     public DateTime DataCriacao { get; set; }
     public DateTime? DataConclusao { get; set; }
     public List<ItemTarefa> Itens { get; set; }
-
     public decimal PercentualConcluido
     {
         get
@@ -24,7 +23,6 @@ public class Tarefa : EntidadeBase<Tarefa>
             return Math.Round(percentualBase, 2);
         }
     }
-
     public bool Concluida { get; set; }
 
     public Tarefa()
