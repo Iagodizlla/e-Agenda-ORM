@@ -1,7 +1,7 @@
 ﻿using eAgenda.Infraestrutura.Orm.Compartilhado;
 using Microsoft.EntityFrameworkCore;
 
-namespace eAgenda.WebApp.DependencyInjection;
+namespace ControleDeBar.WebApp.DependencyInjection;
 
 public static class EntityFrameworkConfig
 {
