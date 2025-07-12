@@ -29,7 +29,7 @@ public class Program
 
         builder.Services.AddScoped<IDbConnection>(provider =>
         {
-            var connectionString = "Data Source=(LocalDB)\\MSSQLLocalDB;Initial Catalog=eAgendaDb;Integrated Security=True";
+            var connectionString = builder.Configuration["SLQ_CONNECTION_STRING"];
 
             return new SqlConnection(connectionString);
         });
