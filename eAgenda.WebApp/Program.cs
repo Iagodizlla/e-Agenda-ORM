@@ -40,6 +40,8 @@ public class Program
         builder.Services.AddScoped<IRepositorioDespesa, RepositorioDespesaEmSql>();
         builder.Services.AddScoped<IRepositorioTarefa, RepositorioTarefaEmSql>();
 
+        builder.Services.AddEntityFrameworkConfig(builder.Configuration);
+
         builder.Services.AddSerilogConfig(builder.Logging);
 
         var app = builder.Build();
