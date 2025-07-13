@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace eAgenda.Infraestrutura.Orm.ModuloCategoria;
 
-public class RepositorioCategoriaEmOrm : IRepositorioCategoria
+public class RepositorioCategoriaEmOrm : RepositorioBaseEmOrm<Despesa>, IRepositorioCategoria
 {
     private readonly DbSet<Categoria> registros;
 
-    public RepositorioCategoriaEmOrm(eAgendaDbContext contexto)
+    public RepositorioCategoriaEmOrm(eAgendaDbContext contexto) : base(contexto)
     {
         registros = contexto.Set<Categoria>();
     }
