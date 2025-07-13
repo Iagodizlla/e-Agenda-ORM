@@ -25,9 +25,11 @@ public class MapeadorContatoEmOrm : IEntityTypeConfiguration<Contato>
             .HasMaxLength(100);
 
         builder.Property(x => x.Empresa)
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .IsRequired(false);
 
         builder.Property(x => x.Cargo)
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .IsRequired(false);
     }
 }

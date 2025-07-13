@@ -1,5 +1,6 @@
 ﻿using eAgenda.Dominio.ModuloCompromisso;
 using eAgenda.Dominio.ModuloContato;
+using eAgenda.Infraestrutura.Orm.Compartilhado;
 using eAgenda.WebApp.Extensions;
 using eAgenda.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,14 +11,18 @@ namespace eAgenda.WebApp.Controllers;
 [Route("compromissos")]
 public class CompromissoController : Controller
 {
+    private readonly eAgendaDbContext contexto;
     private readonly IRepositorioCompromisso repositorioCompromisso;
     private readonly IRepositorioContato repositorioContato;
 
     public CompromissoController(
+        eAgendaDbContext contexto,
         IRepositorioCompromisso repositorioCompromisso,
         IRepositorioContato repositorioContato
+
     )
     {
+        this.contexto = contexto;
         this.repositorioCompromisso = repositorioCompromisso;
         this.repositorioContato = repositorioContato;
     }
@@ -62,7 +67,22 @@ public class CompromissoController : Controller
 
         var despesa = cadastrarVM.ParaEntidade(contatosDisponiveis);
 
-        repositorioCompromisso.CadastrarRegistro(despesa);
+        var transacao = contexto.Database.BeginTransaction();
+
+        try
+        {
+            repositorioCompromisso.CadastrarRegistro(despesa);
+
+            contexto.SaveChanges();
+
+            transacao.Commit();
+        }
+        catch (Exception)
+        {
+            transacao.Rollback();
+
+            throw;
+        }
 
         return RedirectToAction(nameof(Index));
     }
@@ -113,7 +133,22 @@ public class CompromissoController : Controller
 
         var compromissoEditado = editarVM.ParaEntidade(contatosDisponiveis);
 
-        repositorioCompromisso.EditarRegistro(id, compromissoEditado);
+        var transacao = contexto.Database.BeginTransaction();
+
+        try
+        {
+            repositorioCompromisso.EditarRegistro(id, compromissoEditado);
+
+            contexto.SaveChanges();
+
+            transacao.Commit();
+        }
+        catch (Exception)
+        {
+            transacao.Rollback();
+
+            throw;
+        }
 
         return RedirectToAction(nameof(Index));
     }
@@ -140,7 +175,23 @@ public class CompromissoController : Controller
         if (registroSelecionado is null)
             return RedirectToAction(nameof(Index));
 
-        repositorioCompromisso.ExcluirRegistro(id);
+        var transacao = contexto.Database.BeginTransaction();
+
+        try
+        {
+            repositorioCompromisso.ExcluirRegistro(id);
+
+            contexto.SaveChanges();
+
+            transacao.Commit();
+        }
+        catch (Exception)
+        {
+
+            transacao.Rollback();
+
+            throw;
+        }
 
         return RedirectToAction(nameof(Index));
     }
