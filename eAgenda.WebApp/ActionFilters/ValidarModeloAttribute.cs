@@ -16,8 +16,11 @@ public class ValidarModeloAttribute : ActionFilterAttribute
 
             var viewModel = context.ActionArguments
                 .Values
-                .FirstOrDefault(x => x.GetType().Name.EndsWith("ViewModel"));
+                .FirstOrDefault(x => x is not null && x.GetType().Name.EndsWith("ViewModel"));
 
+            //if(viewModel == null)
+            //    context.Result = controller.View("/Home/Index");
+            //else
             context.Result = controller.View(viewModel);
         }
     }

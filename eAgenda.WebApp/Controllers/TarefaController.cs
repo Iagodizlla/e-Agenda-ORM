@@ -232,9 +232,10 @@ public class TarefaController : Controller
         if (tarefaSelecionada is null)
             return RedirectToAction(nameof(Index));
 
-        var itemAdicionado = tarefaSelecionada.AdicionarItem(tituloItem);
+        if (string.IsNullOrWhiteSpace(tituloItem))
+            return View(nameof(GerenciarItens), new GerenciarItensViewModel(tarefaSelecionada));
 
-        var item = tarefaSelecionada.AdicionarItem(itemAdicionado);
+        var item = tarefaSelecionada.AdicionarItem(tituloItem);
 
         contexto.ItensTarefa.Add(item);
 

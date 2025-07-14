@@ -60,12 +60,12 @@ public class RepositorioTarefaEmOrm : RepositorioBaseEmOrm<Tarefa>, IRepositorio
     public List<Tarefa> SelecionarTarefasConcluidas()
     {
         var registros = SelecionarRegistros();
-        return registros.Where(t => t.Concluida).ToList();
+        return registros.Where(t => t.PercentualConcluido == 100).ToList();
     }
 
     public List<Tarefa> SelecionarTarefasPendentes()
     {
         var registros = SelecionarRegistros();
-        return registros.Where(t => !t.Concluida).ToList();
+        return registros.Where(t => t.PercentualConcluido != 100).ToList();
     }
 }
