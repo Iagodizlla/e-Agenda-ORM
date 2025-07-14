@@ -234,7 +234,11 @@ public class TarefaController : Controller
 
         var itemAdicionado = tarefaSelecionada.AdicionarItem(tituloItem);
 
-        repositorioTarefa.AdicionarItem(itemAdicionado);
+        var item = tarefaSelecionada.AdicionarItem(itemAdicionado);
+
+        contexto.ItensTarefa.Add(item);
+
+        contexto.SaveChanges();
 
         var gerenciarItensViewModel = new GerenciarItensViewModel(tarefaSelecionada);
 
@@ -259,7 +263,9 @@ public class TarefaController : Controller
         else
             tarefaSelecionada.MarcarItemPendente(itemSelecionado);
 
-        repositorioTarefa.AtualizarItem(itemSelecionado);
+        tarefaSelecionada.AtualizarItem(itemSelecionado);
+
+        contexto.SaveChanges();
 
         var gerenciarItensViewModel = new GerenciarItensViewModel(tarefaSelecionada);
 
@@ -281,7 +287,9 @@ public class TarefaController : Controller
 
         tarefaSelecionada.RemoverItem(itemSelecionado);
 
-        repositorioTarefa.RemoverItem(itemSelecionado);
+        tarefaSelecionada.RemoverItem(itemSelecionado);
+
+        contexto.SaveChanges();
 
         var gerenciarItensViewModel = new GerenciarItensViewModel(tarefaSelecionada);
 

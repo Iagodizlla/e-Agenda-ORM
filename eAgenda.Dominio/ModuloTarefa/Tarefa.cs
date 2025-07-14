@@ -83,6 +83,13 @@ public class Tarefa : EntidadeBase<Tarefa>
         return true;
     }
 
+    public void AtualizarItem(ItemTarefa item)
+    {
+        item.Titulo = item.Titulo;
+        item.Concluido = item.Concluido;
+
+    }
+
     public void ConcluirItem(ItemTarefa item)
     {
         item.Concluir();

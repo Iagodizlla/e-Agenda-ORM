@@ -49,12 +49,12 @@ public class RepositorioTarefaEmOrm : RepositorioBaseEmOrm<Tarefa>, IRepositorio
      
     public virtual Tarefa? SelecionarRegistroPorId(Guid idRegistro)
     {
-        return registros.FirstOrDefault(x => x.Id.Equals(idRegistro));
+        return registros.Include(r => r.Itens).FirstOrDefault(x => x.Id.Equals(idRegistro));
     }
 
     public virtual List<Tarefa> SelecionarRegistros()
     {
-        return registros.ToList();
+        return registros.Include(r => r.Itens).ToList();
     }
 
     public List<Tarefa> SelecionarTarefasConcluidas()
@@ -67,19 +67,5 @@ public class RepositorioTarefaEmOrm : RepositorioBaseEmOrm<Tarefa>, IRepositorio
     {
         var registros = SelecionarRegistros();
         return registros.Where(t => !t.Concluida).ToList();
-    }
-    public bool RemoverItem(ItemTarefa item)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void AdicionarItem(ItemTarefa item)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool AtualizarItem(ItemTarefa itemAtualizado)
-    {
-        throw new NotImplementedException();
     }
 }

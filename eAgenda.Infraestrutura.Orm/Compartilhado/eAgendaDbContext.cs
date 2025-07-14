@@ -15,6 +15,7 @@ public class eAgendaDbContext : DbContext
     public DbSet<Categoria> Categorias { get; set; }
     public DbSet<Despesa> Despesas { get; set; }
     public DbSet<Tarefa> Tarefas { get; set; }
+    public DbSet<ItemTarefa> ItensTarefa { get; set; }
     public eAgendaDbContext(DbContextOptions<eAgendaDbContext> options) : base(options){ }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

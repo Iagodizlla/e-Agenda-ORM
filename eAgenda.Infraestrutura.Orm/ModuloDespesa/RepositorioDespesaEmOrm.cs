@@ -54,7 +54,7 @@ public class RepositorioDespesaEmOrm : RepositorioBaseEmOrm<Despesa>, IRepositor
 
     public virtual List<Despesa> SelecionarRegistros()
     {
-        return registros.ToList();
+        return registros.Include(r => r.Categorias).ToList();
     }
 
     public List<Categoria> CarregarCategorias(Despesa despesa)
