@@ -38,13 +38,7 @@ public class MapeadorTarefaEmOrm : IEntityTypeConfiguration<Tarefa>
             .HasConversion<bool>()
             .IsRequired();
 
-        builder.Property(x => x.PercentualConcluido)
-            .HasColumnType("decimal(3,2)")
-            .IsRequired();
-
         builder.HasMany(t => t.Itens)
-            .WithOne()
-            .HasForeignKey(i => i.Tarefa)
-            .OnDelete(DeleteBehavior.Cascade);
+            .WithOne(i => i.Tarefa);
     }
 }

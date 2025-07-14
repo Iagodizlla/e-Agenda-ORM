@@ -24,24 +24,6 @@ public class MapeadorCategoriaEmOrm : IEntityTypeConfiguration<Categoria>
             .HasMaxLength(100);
 
         builder.HasMany(c => c.Despesas)
-            .WithMany(d => d.Categorias)
-            .UsingEntity<Dictionary<string, object>>(
-                "DespesaCategoria",
-                j => j
-                    .HasOne<Despesa>()
-                    .WithMany()
-                    .HasForeignKey("DespesaId")
-                    .HasConstraintName("FK_DespesaCategoria_Despesa")
-                    .OnDelete(DeleteBehavior.Cascade),
-                j => j
-                    .HasOne<Categoria>()
-                    .WithMany()
-                    .HasForeignKey("CategoriaId")
-                    .HasConstraintName("FK_DespesaCategoria_Categoria")
-                    .OnDelete(DeleteBehavior.Cascade),
-                j =>
-                {
-                    j.HasKey("DespesaId", "CategoriaId");
-                });
+            .WithMany(d => d.Categorias);
     }
 }

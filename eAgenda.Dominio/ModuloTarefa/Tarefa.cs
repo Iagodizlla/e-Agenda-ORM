@@ -36,13 +36,13 @@ public class Tarefa : EntidadeBase<Tarefa>
         Titulo = titulo;
         Prioridade = prioridade;
         Concluida = false;
-        DataCriacao = DateTime.Now;
+        DataCriacao = DateTime.UtcNow;
     }
 
     public void Concluir()
     {
         Concluida = true;
-        DataConclusao = DateTime.Now;
+        DataConclusao = DateTime.UtcNow;
     }
 
     public void MarcarPendente()

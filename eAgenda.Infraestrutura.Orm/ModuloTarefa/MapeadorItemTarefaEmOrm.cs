@@ -24,8 +24,8 @@ public class MapeadorItemTarefaEmOrm : IEntityTypeConfiguration<ItemTarefa>
         builder.Property(x => x.Concluido)
             .IsRequired();
 
-        builder.HasOne(t => t.Tarefa)
-            .WithMany(t => t.Itens)
-            .HasForeignKey(t => t.Tarefa);
+        builder.HasOne(x => x.Tarefa)
+            .WithMany(x => x.Itens)
+            .IsRequired();
     }
 }
