@@ -4,6 +4,7 @@ using eAgenda.Infraestrutura.Orm.ModuloContato;
 using eAgenda.Dominio.ModuloCompromisso;
 using eAgenda.Dominio.ModuloCategoria;
 using eAgenda.Dominio.ModuloDespesa;
+using eAgenda.Dominio.ModuloTarefa;
 
 namespace eAgenda.Infraestrutura.Orm.Compartilhado;
 
@@ -13,7 +14,7 @@ public class eAgendaDbContext : DbContext
     public DbSet<Compromisso> Compromissos { get; set; }
     public DbSet<Categoria> Categorias { get; set; }
     public DbSet<Despesa> Despesas { get; set; }
-
+    public DbSet<Tarefa> Tarefas { get; set; }
     public eAgendaDbContext(DbContextOptions<eAgendaDbContext> options) : base(options){ }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
